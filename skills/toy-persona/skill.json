@@ -1,0 +1,17 @@
+{
+  "name": "toy-persona",
+  "version": "0.1.0",
+  "description": "Harmless persona-style prompt rewriting for toy candidate generation.",
+  "category": "attack",
+  "stage": ["search"],
+  "tags": ["toy", "persona", "transform"],
+  "inputs": ["seed_prompt", "constraints"],
+  "outputs": ["candidates", "artifacts"],
+  "entry": "scripts/run.py",
+  "references": ["references/patterns.md", "references/examples.md"],
+  "failure_modes": [
+    "low diversity across personas",
+    "overly generic outputs",
+    "filtered seed prompt reduces specificity"
+  ]
+}

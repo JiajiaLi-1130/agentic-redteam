@@ -1,0 +1,17 @@
+{
+  "name": "refine-skill",
+  "version": "0.1.0",
+  "description": "Create harmless patch suggestions or draft variants for toy skills.",
+  "category": "meta",
+  "stage": ["refine", "escalation"],
+  "tags": ["toy", "meta", "refine"],
+  "inputs": ["extra.target_skill_spec", "evaluator_feedback", "extra.recent_memory"],
+  "outputs": ["artifacts"],
+  "entry": "scripts/run.py",
+  "references": ["references/rules.md"],
+  "failure_modes": [
+    "suggestions are too generic",
+    "draft is not meaningfully different",
+    "feedback may be too sparse"
+  ]
+}

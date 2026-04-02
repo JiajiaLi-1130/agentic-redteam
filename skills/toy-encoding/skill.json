@@ -1,0 +1,17 @@
+{
+  "name": "toy-encoding",
+  "version": "0.1.0",
+  "description": "Harmless formatting and encoding transformations for toy candidate generation.",
+  "category": "attack",
+  "stage": ["search"],
+  "tags": ["toy", "encoding", "transform"],
+  "inputs": ["seed_prompt", "constraints"],
+  "outputs": ["candidates", "artifacts"],
+  "entry": "scripts/run.py",
+  "references": ["references/patterns.md"],
+  "failure_modes": [
+    "encoded output loses readability",
+    "formatting adds little value",
+    "sanitized seed prompt becomes generic"
+  ]
+}

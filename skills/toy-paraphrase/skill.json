@@ -1,0 +1,17 @@
+{
+  "name": "toy-paraphrase",
+  "version": "0.1.0",
+  "description": "Harmless paraphrase generator for toy candidate search.",
+  "category": "attack",
+  "stage": ["search"],
+  "tags": ["toy", "paraphrase", "transform"],
+  "inputs": ["seed_prompt", "constraints"],
+  "outputs": ["candidates", "artifacts"],
+  "entry": "scripts/run.py",
+  "references": ["references/patterns.md"],
+  "failure_modes": [
+    "paraphrases are too similar",
+    "paraphrases become overly abstract",
+    "sanitized topic reduces nuance"
+  ]
+}

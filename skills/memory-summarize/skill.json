@@ -1,0 +1,17 @@
+{
+  "name": "memory-summarize",
+  "version": "0.1.0",
+  "description": "Summarize recent memory entries for harmless workflow escalation.",
+  "category": "analysis",
+  "stage": ["analysis", "escalation"],
+  "tags": ["toy", "memory", "summary"],
+  "inputs": ["memory_summary", "extra.recent_memory"],
+  "outputs": ["artifacts"],
+  "entry": "scripts/run.py",
+  "references": ["references/notes.md"],
+  "failure_modes": [
+    "summary too shallow",
+    "small memory windows hide patterns",
+    "counts omit qualitative nuance"
+  ]
+}

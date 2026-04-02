@@ -1,0 +1,26 @@
+name: escalation
+description: Escalation path for harmless memory analysis and meta-skill drafting.
+initial_stage: escalation_memory
+
+skill_groups:
+  memory:
+    - memory-summarize
+  analysis:
+    - retrieval-analysis
+  meta:
+    - refine-skill
+    - combine-skills
+    - discover-skill
+  return_search:
+    - toy-persona
+    - toy-paraphrase
+
+policy:
+  repeated_failure_threshold: 2
+  return_stage: escalation_return
+
+conditions:
+  repeated_failures:
+    source: consecutive_failures
+    op: ">="
+    value: 2

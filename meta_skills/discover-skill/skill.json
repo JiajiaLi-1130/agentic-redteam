@@ -1,0 +1,17 @@
+{
+  "name": "discover-skill",
+  "version": "0.1.0",
+  "description": "Draft a new harmless toy skill concept from repeated failure patterns.",
+  "category": "meta",
+  "stage": ["escalation"],
+  "tags": ["toy", "meta", "discover"],
+  "inputs": ["memory_summary", "extra.recent_memory", "evaluator_feedback"],
+  "outputs": ["artifacts"],
+  "entry": "scripts/run.py",
+  "references": ["references/rules.md"],
+  "failure_modes": [
+    "draft is too speculative",
+    "repeated failures may be coincidental",
+    "proposed logic may overlap existing toy skills"
+  ]
+}

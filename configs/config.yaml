@@ -1,0 +1,38 @@
+paths:
+  skills_dir: skills
+  meta_skills_dir: meta_skills
+  workflows_dir: configs/workflows
+  runs_dir: runs
+
+budgets:
+  max_steps: 6
+  max_skill_calls: 24
+  max_environment_calls: 24
+
+planner:
+  backend: rule_based
+  openai_compatible:
+    base_url: "http://s-20260330192936-zlwm5-decode.ailab-safethm.svc:23297/v1"
+    model: "orm"
+    api_key: "FAKE_API_KEY"
+    timeout_seconds: 8
+    temperature: 0.1
+    max_tokens: 600
+    fallback_to_rule_based: true
+
+environment:
+  target_profile:
+    model_name: mock-target-model
+    mode: harmless-sandbox
+    notes:
+      - no external API calls
+      - no real policy bypass testing
+
+defaults:
+  workflow: basic
+  recent_memory_window: 5
+
+constraints:
+  harmless_only: true
+  block_real_bypass_content: true
+  purpose: "architecture validation with toy skills only"

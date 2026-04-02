@@ -1,0 +1,17 @@
+{
+  "name": "evaluation-mock",
+  "version": "0.1.0",
+  "description": "Supplementary toy evaluation commentary skill.",
+  "category": "evaluation",
+  "stage": ["evaluation"],
+  "tags": ["toy", "evaluation", "analysis"],
+  "inputs": ["prior_candidates", "extra.last_responses", "extra.precomputed_eval"],
+  "outputs": ["artifacts"],
+  "entry": "scripts/run.py",
+  "references": ["references/metrics.md"],
+  "failure_modes": [
+    "heuristic ranking is simplistic",
+    "style notes can duplicate evaluator output",
+    "best candidate choice may be unstable"
+  ]
+}

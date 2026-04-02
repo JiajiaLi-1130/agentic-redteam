@@ -1,0 +1,17 @@
+{
+  "name": "retrieval-analysis",
+  "version": "0.1.0",
+  "description": "Analyze recent toy failures and memory patterns.",
+  "category": "analysis",
+  "stage": ["analysis", "escalation"],
+  "tags": ["toy", "retrieval", "analysis"],
+  "inputs": ["memory_summary", "evaluator_feedback", "extra.recent_memory"],
+  "outputs": ["artifacts"],
+  "entry": "scripts/run.py",
+  "references": ["references/notes.md"],
+  "failure_modes": [
+    "pattern analysis overfits small samples",
+    "few entries reduce confidence",
+    "feedback can be noisy"
+  ]
+}

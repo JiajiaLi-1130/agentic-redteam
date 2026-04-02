@@ -1,0 +1,17 @@
+{
+  "name": "combine-skills",
+  "version": "0.1.0",
+  "description": "Draft a new harmless toy skill by combining two existing toy skills.",
+  "category": "meta",
+  "stage": ["escalation", "refine"],
+  "tags": ["toy", "meta", "combine"],
+  "inputs": ["extra.target_skill_specs", "evaluator_feedback"],
+  "outputs": ["artifacts"],
+  "entry": "scripts/run.py",
+  "references": ["references/rules.md"],
+  "failure_modes": [
+    "combined skill is redundant",
+    "draft is too vague",
+    "input skill specs are incomplete"
+  ]
+}
