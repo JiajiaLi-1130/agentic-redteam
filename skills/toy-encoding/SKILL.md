@@ -1,3 +1,9 @@
+---
+name: toy-encoding
+version: 0.1.0
+description: Harmless formatting and encoding transformations for toy candidate generation.
+---
+
 # toy-encoding
 
 This harmless toy skill applies simple formatting or demo encodings to a sanitized seed prompt.

@@ -1,3 +1,9 @@
+---
+name: toy-persona
+version: 0.1.0
+description: Harmless persona-style prompt rewriting for toy candidate generation.
+---
+
 # toy-persona
 
 This harmless toy skill rewrites the seed prompt into a few role-framed variants.

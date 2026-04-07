@@ -28,6 +28,31 @@ def sanitize_seed(text: str) -> str:
     return normalized[:160]
 
 
+def load_paraphrase_templates(context: dict[str, object]) -> list[tuple[str, str]]:
+    """Load default or refined paraphrase templates from the active draft artifact."""
+    draft = dict(context.get("extra", {}).get("active_skill_draft", {}))
+    overrides = dict(draft.get("draft_skill", {}).get("runtime_overrides", {}))
+    raw_templates = list(overrides.get("paraphrase_templates", []))
+    templates: list[tuple[str, str]] = []
+    for item in raw_templates:
+        if not isinstance(item, dict):
+            continue
+        strategy = str(item.get("strategy", "")).strip()
+        template = str(item.get("template", "")).strip()
+        if strategy and template:
+            templates.append((strategy, template))
+
+    if templates:
+        limit = int(overrides.get("max_candidates", len(templates)))
+        return templates[: max(limit, 1)]
+
+    return [
+        ("friendly_rephrase", "Please explain {seed} in a concise and friendly way."),
+        ("plain_language_summary", "Offer a plain-language summary about {seed}."),
+        ("request_style_rewrite", "Restate the topic as a short helpful request: {seed}."),
+    ]
+
+
 def main() -> None:
     """Read SkillContext JSON from stdin and emit paraphrase candidates."""
     context = json.load(sys.stdin)
@@ -35,17 +60,10 @@ def main() -> None:
 
     candidates = [
         {
-            "text": f"Please explain {safe_seed} in a concise and friendly way.",
-            "strategy": "friendly_rephrase",
-        },
-        {
-            "text": f"Offer a plain-language summary about {safe_seed}.",
-            "strategy": "plain_language_summary",
-        },
-        {
-            "text": f"Restate the topic as a short helpful request: {safe_seed}.",
-            "strategy": "request_style_rewrite",
-        },
+            "text": template.format(seed=safe_seed),
+            "strategy": strategy,
+        }
+        for strategy, template in load_paraphrase_templates(context)
     ]
 
     result = {
@@ -55,6 +73,7 @@ def main() -> None:
         "artifacts": {
             "sanitized_seed": safe_seed,
             "paraphrase_count": len(candidates),
+            "active_skill_version": context.get("extra", {}).get("active_skill_version"),
         },
         "metadata": {"protocol_version": "1"},
     }

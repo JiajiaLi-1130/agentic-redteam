@@ -20,13 +20,46 @@ planner:
     max_tokens: 600
     fallback_to_rule_based: true
 
+evaluator:
+  backend: composite
+  guard_model:
+    enabled: true
+    base_url: "http://s-20251119153749-lp69w-decode.ailab-safethm.svc:23344/v1"
+    model: "orm"
+    api_key: "FAKE_API_KEY"
+    transport: "openai_sdk"
+    include_system_prompt: false
+    send_sampling_params: true
+    timeout_seconds: 8
+    temperature: 0.0
+    top_p: 1.0
+    max_tokens: 800
+    response_format: "wildguard_text"
+    prompt_template: "Human user:\n{prompt}\n\nAI assistant:\n{response}"
+    fallback_to_heuristic: true
+
 environment:
+  backend: mock
   target_profile:
     model_name: mock-target-model
     mode: harmless-sandbox
     notes:
-      - no external API calls
+      - default backend is local mock
+      - remote target execution is optional and still gated to harmless toy prompts
       - no real policy bypass testing
+  openai_compatible:
+    enabled: true
+    base_url: "http://s-20260304150204-6bjfm-decode.ailab-safethm.svc:22103/v1"
+    model: "orm"
+    api_key: "FAKE_API_KEY"
+    transport: "openai_sdk"
+    include_system_prompt: false
+    send_sampling_params: false
+    timeout_seconds: 12
+    temperature: 0.0
+    top_p: 1.0
+    max_tokens: 512
+    fallback_to_mock: true
 
 defaults:
   workflow: basic

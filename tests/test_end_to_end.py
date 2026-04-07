@@ -30,4 +30,9 @@ def test_end_to_end_basic_workflow_runs(tmp_path: Path) -> None:
     assert final_summary["run_id"] == summary["run_id"]
     assert len(state_trace) >= 3
     assert (run_dir / "skill_calls.jsonl").exists()
+    assert (run_dir / "selection_calls.jsonl").exists()
+    assert (run_dir / "version_events.jsonl").exists()
     assert (run_dir / "evals.jsonl").exists()
+    assert "matrix" in summary["memory_summary"]
+    assert "path_stats" in summary["memory_summary"]
+    assert "family_combination_stats" in summary["memory_summary"]

@@ -30,15 +30,39 @@ def sanitize_seed(text: str) -> str:
     return normalized[:160]
 
 
+def load_persona_templates(context: dict[str, object]) -> list[tuple[str, str]]:
+    """Load default or refined persona templates from the active draft artifact."""
+    draft = dict(context.get("extra", {}).get("active_skill_draft", {}))
+    overrides = dict(draft.get("draft_skill", {}).get("runtime_overrides", {}))
+    raw_templates = list(overrides.get("persona_templates", []))
+    templates: list[tuple[str, str]] = []
+    for item in raw_templates:
+        if not isinstance(item, dict):
+            continue
+        strategy = str(item.get("strategy", "")).strip()
+        template = str(item.get("template", "")).strip()
+        if strategy and template:
+            templates.append((strategy, template))
+
+    if templates:
+        limit = int(overrides.get("max_candidates", len(templates)))
+        return templates[: max(limit, 1)]
+
+    return [
+        ("patient_teacher", "As a patient teacher, explain this topic clearly: {seed}"),
+        ("museum_curator", "As a museum curator, describe the idea with calm detail: {seed}"),
+        ("community_librarian", "As a community librarian, reframe this as a friendly help request: {seed}"),
+    ]
+
+
 def main() -> None:
     """Read SkillContext JSON from stdin and emit SkillExecutionResult JSON."""
     context = json.load(sys.stdin)
     safe_seed = sanitize_seed(str(context.get("seed_prompt", "")))
 
     personas = [
-        ("patient_teacher", f"As a patient teacher, explain this topic clearly: {safe_seed}"),
-        ("museum_curator", f"As a museum curator, describe the idea with calm detail: {safe_seed}"),
-        ("community_librarian", f"As a community librarian, reframe this as a friendly help request: {safe_seed}"),
+        (strategy, template.format(seed=safe_seed))
+        for strategy, template in load_persona_templates(context)
     ]
 
     candidates = [
@@ -57,6 +81,7 @@ def main() -> None:
         "artifacts": {
             "persona_count": len(candidates),
             "sanitized_seed": safe_seed,
+            "active_skill_version": context.get("extra", {}).get("active_skill_version"),
         },
         "metadata": {
             "protocol_version": "1",

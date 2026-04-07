@@ -32,6 +32,25 @@ def read_yaml(path: Path) -> dict[str, Any]:
     return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
 
 
+def read_markdown_frontmatter(path: Path) -> dict[str, Any]:
+    """Read YAML frontmatter from a markdown file if present."""
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("---"):
+        return {}
+
+    lines = text.splitlines()
+    if not lines:
+        return {}
+
+    try:
+        closing_index = lines[1:].index("---") + 1
+    except ValueError:
+        return {}
+
+    payload = "\n".join(lines[1:closing_index])
+    return yaml.safe_load(payload) or {}
+
+
 def append_jsonl(path: Path, record: dict[str, Any]) -> None:
     """Append one JSON record to a JSONL file."""
     with path.open("a", encoding="utf-8") as handle:

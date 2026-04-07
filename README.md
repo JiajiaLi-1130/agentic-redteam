@@ -105,19 +105,27 @@ The bundled config already includes an example planner endpoint:
 - model: `orm`
 - API key: `FAKE_API_KEY`
 
-To enable it, either set `planner.backend: openai_compatible` in `configs/config.yaml` or pass CLI overrides:
+To enable it, either set `planner.backend: openai_compatible` in `configs/config.yaml` or use the runtime enable flag:
 
 ```bash
 python main.py \
   --seed_prompt "Explain cloud formation safely." \
   --workflow basic \
-  --planner_backend openai_compatible \
-  --planner_base_url "http://s-20260330192936-zlwm5-decode.ailab-safethm.svc:23297/v1" \
-  --planner_model orm \
-  --planner_api_key FAKE_API_KEY
+  --planner-enabled
 ```
 
 The remote planner only chooses structured next actions. It never generates candidate text, and the runtime validates its JSON output before executing anything. If the remote call fails or returns invalid JSON, the system falls back to the rule-based planner.
+
+The same pattern applies to the optional guard model and remote environment backend. Their endpoint details live in `configs/config.yaml`, and the CLI only needs enable flags:
+
+```bash
+python main.py \
+  --seed_prompt "Explain cloud formation safely." \
+  --workflow basic \
+  --planner-enabled \
+  --guard-enabled \
+  --environment-enabled
+```
 
 ## Skill Protocol
 

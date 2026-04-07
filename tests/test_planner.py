@@ -36,7 +36,7 @@ def make_state() -> AgentState:
 
 
 def test_planner_selects_initial_search_skills() -> None:
-    """Planner should choose two search skills at the start."""
+    """Planner should emit one structured search action at the start."""
     specs = SkillLoader(PROJECT_ROOT).discover()
     registry = SkillRegistry(specs)
     planner = RuleBasedPlanner()
@@ -44,8 +44,9 @@ def test_planner_selects_initial_search_skills() -> None:
 
     plan = planner.plan(state, load_workflows(), registry)
 
-    assert len(plan) == 2
-    assert all(step.action_type == "invoke_skill" for step in plan)
+    assert len(plan) == 1
+    assert plan[0].action_type == "select_search_paths"
+    assert "search_pool" in plan[0].args
 
 
 def test_planner_executes_pending_candidates() -> None:

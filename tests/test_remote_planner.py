@@ -31,6 +31,7 @@ def make_state() -> AgentState:
             "total_entries": 0,
             "skill_counts": {},
             "recent_skill_names": [],
+            "recent_risk_types": [],
             "recent_failure_tags": [],
         },
         last_eval={},
@@ -58,14 +59,15 @@ def test_remote_planner_accepts_valid_json(monkeypatch) -> None:
         "_call_remote_planner",
         lambda **_kwargs: (
             '{"plan_steps": ['
-            '{"action_type": "invoke_skill", "target": "toy-encoding", "args": {"mode": "search"}, "reason": "Try structured transforms."},'
-            '{"action_type": "invoke_skill", "target": "toy-persona", "args": {"mode": "search"}, "reason": "Try role framing."}'
+            '{"action_type": "select_search_paths", "target": null, "args": {"search_pool": ["toy-encoding", "toy-persona"], "path_count": 1, "path_length": 2, "beam_width": 2, "exploration_weight": 0.45}, "reason": "Try structured transforms first."}'
             "]}"),
     )
 
     plan = planner.plan(state, load_workflows(), registry)
 
-    assert [step.target for step in plan] == ["toy-encoding", "toy-persona"]
+    assert len(plan) == 1
+    assert plan[0].action_type == "select_search_paths"
+    assert plan[0].args["search_pool"] == ["toy-encoding", "toy-persona"]
     assert state.planner_flags["planner_backend"] == "openai_compatible"
 
 
@@ -86,6 +88,6 @@ def test_remote_planner_falls_back_on_invalid_json(monkeypatch) -> None:
 
     plan = planner.plan(state, load_workflows(), registry)
 
-    assert len(plan) == 2
-    assert all(step.action_type == "invoke_skill" for step in plan)
+    assert len(plan) == 1
+    assert plan[0].action_type == "select_search_paths"
     assert state.planner_flags["planner_mode"] == "remote_fallback"

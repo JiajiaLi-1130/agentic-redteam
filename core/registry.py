@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from typing import Any
 
 from core.schemas import SkillSpec
 
@@ -12,12 +13,18 @@ class SkillRegistry:
 
     def __init__(self, specs: Iterable[SkillSpec] | None = None) -> None:
         self._by_name: dict[str, SkillSpec] = {}
+        self._by_family: dict[str, list[SkillSpec]] = {}
         if specs:
             self.register_many(specs)
 
     def register(self, spec: SkillSpec) -> None:
         """Register a single skill spec."""
         self._by_name[spec.name] = spec
+        family_specs = [
+            existing for existing in self._by_family.get(spec.family, []) if existing.name != spec.name
+        ]
+        family_specs.append(spec)
+        self._by_family[spec.family] = sorted(family_specs, key=lambda item: item.name)
 
     def register_many(self, specs: Iterable[SkillSpec]) -> None:
         """Register many skill specs."""
@@ -32,6 +39,14 @@ class SkillRegistry:
         """Return all registered specs."""
         return list(self._by_name.values())
 
+    def families(self) -> list[str]:
+        """Return all registered skill family identifiers."""
+        return sorted(self._by_family)
+
+    def get_family(self, family: str) -> list[SkillSpec]:
+        """Return all specs that belong to the same family."""
+        return list(self._by_family.get(family, []))
+
     def names(self) -> list[str]:
         """Return all registered skill names."""
         return sorted(self._by_name)
@@ -39,12 +54,24 @@ class SkillRegistry:
     def filter(
         self,
         *,
+        names: list[str] | None = None,
+        family: str | None = None,
         category: str | None = None,
         stage: str | None = None,
         tags: list[str] | None = None,
+        status: str | None = None,
+        prompt_bucket: str | None = None,
+        target_traits: list[str] | None = None,
+        memory_tags: list[str] | None = None,
+        evaluation_focus: list[str] | None = None,
     ) -> list[SkillSpec]:
-        """Filter skills by category, stage, and tags."""
+        """Filter skills by family, applicability, category, stage, and tags."""
         results = self.all()
+        if names is not None:
+            allowed = set(names)
+            results = [spec for spec in results if spec.name in allowed]
+        if family is not None:
+            results = [spec for spec in results if spec.family == family]
         if category is not None:
             results = [spec for spec in results if spec.category == category]
         if stage is not None:
@@ -52,4 +79,52 @@ class SkillRegistry:
         if tags:
             wanted = set(tags)
             results = [spec for spec in results if wanted.issubset(set(spec.tags))]
+        if status is not None:
+            results = [spec for spec in results if spec.status == status]
+        if prompt_bucket is not None:
+            results = [spec for spec in results if self._matches_prompt_bucket(spec, prompt_bucket)]
+        if target_traits:
+            wanted_traits = set(target_traits)
+            results = [spec for spec in results if self._matches_traits(spec.applicability.get("target_traits", []), wanted_traits)]
+        if memory_tags:
+            wanted_tags = set(memory_tags)
+            results = [spec for spec in results if self._matches_traits(spec.applicability.get("memory_tags", []), wanted_tags)]
+        if evaluation_focus:
+            wanted_focus = set(evaluation_focus)
+            results = [spec for spec in results if wanted_focus.intersection(set(spec.evaluation_focus))]
         return results
+
+    def filter_applicable(
+        self,
+        *,
+        prompt_bucket: str | None = None,
+        category: str | None = None,
+        stage: str | None = None,
+        names: list[str] | None = None,
+        target_traits: list[str] | None = None,
+        memory_tags: list[str] | None = None,
+    ) -> list[SkillSpec]:
+        """Convenience filter for runtime selection of applicable skills."""
+        return self.filter(
+            names=names,
+            category=category,
+            stage=stage,
+            status="active",
+            prompt_bucket=prompt_bucket,
+            target_traits=target_traits,
+            memory_tags=memory_tags,
+        )
+
+    def _matches_prompt_bucket(self, spec: SkillSpec, prompt_bucket: str) -> bool:
+        """Return whether the spec declares compatibility with a prompt bucket."""
+        buckets = list(spec.applicability.get("prompt_buckets", []))
+        if not buckets:
+            return True
+        return prompt_bucket in buckets or "general" in buckets
+
+    def _matches_traits(self, declared_traits: list[Any], wanted_traits: set[str]) -> bool:
+        """Match a declared list of traits against a wanted trait set."""
+        if not declared_traits:
+            return True
+        declared = {str(item) for item in declared_traits}
+        return bool(declared.intersection(wanted_traits))

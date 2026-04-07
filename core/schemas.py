@@ -32,7 +32,81 @@ class SkillSpec:
     entry: str
     references: list[str]
     failure_modes: list[str]
+    family: str = ""
+    variant: str = ""
+    status: str = "active"
+    applicability: dict[str, Any] = field(default_factory=dict)
+    parameters_schema: dict[str, Any] = field(default_factory=dict)
+    retrieval_hints: dict[str, Any] = field(default_factory=dict)
+    composition: dict[str, Any] = field(default_factory=dict)
+    refinement: dict[str, Any] = field(default_factory=dict)
+    evaluation_focus: list[str] = field(default_factory=list)
+    safety_scope: dict[str, Any] = field(default_factory=dict)
     root_dir: str = ""
+
+    def __post_init__(self) -> None:
+        """Normalize defaults so skills behave like family objects, not thin scripts."""
+        if not self.family:
+            self.family = self.name
+        if not self.variant:
+            self.variant = self.name
+        if not self.status:
+            self.status = "active"
+
+        applicability = {
+            "prompt_buckets": [],
+            "target_traits": [],
+            "memory_tags": [],
+            "preferred_stages": list(self.stage),
+        }
+        applicability.update(self.applicability or {})
+        self.applicability = applicability
+
+        parameters_schema = {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        }
+        parameters_schema.update(self.parameters_schema or {})
+        self.parameters_schema = parameters_schema
+
+        retrieval_hints = {
+            "lexical_triggers": [],
+            "memory_keys": [self.family],
+            "prompt_buckets": list(self.applicability.get("prompt_buckets", [])),
+        }
+        retrieval_hints.update(self.retrieval_hints or {})
+        self.retrieval_hints = retrieval_hints
+
+        composition = {
+            "compatible_families": [],
+            "conflicts_with": [],
+            "pipeline_role": "standalone",
+        }
+        composition.update(self.composition or {})
+        self.composition = composition
+
+        refinement = {
+            "allowed_operations": ["patch_suggestions", "draft_variant"],
+            "promotion_metric": "avg_overall_score",
+            "rollback_metric": "avg_overall_score",
+        }
+        refinement.update(self.refinement or {})
+        self.refinement = refinement
+
+        if not self.evaluation_focus:
+            self.evaluation_focus = ["usefulness_score", "diversity_score"]
+
+        safety_scope = {
+            "mode": "harmless_mock_only",
+            "disallowed_content": [
+                "real_jailbreak_instructions",
+                "real_bypass_workflows",
+                "malware_or_weapon_content",
+            ],
+        }
+        safety_scope.update(self.safety_scope or {})
+        self.safety_scope = safety_scope
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the spec to a plain dictionary."""
@@ -53,6 +127,16 @@ class SkillSpec:
             entry=str(data["entry"]),
             references=list(data["references"]),
             failure_modes=list(data["failure_modes"]),
+            family=str(data.get("family", data["name"])),
+            variant=str(data.get("variant", data["name"])),
+            status=str(data.get("status", "active")),
+            applicability=dict(data.get("applicability", {})),
+            parameters_schema=dict(data.get("parameters_schema", {})),
+            retrieval_hints=dict(data.get("retrieval_hints", {})),
+            composition=dict(data.get("composition", {})),
+            refinement=dict(data.get("refinement", {})),
+            evaluation_focus=list(data.get("evaluation_focus", [])),
+            safety_scope=dict(data.get("safety_scope", {})),
             root_dir=str(data.get("root_dir", "")),
         )
 
@@ -157,6 +241,9 @@ class MemoryEntry:
     response_text: str
     eval_result: dict[str, Any]
     tags: list[str]
+    prompt_bucket: str = "general"
+    skill_version: str = "0.0.0"
+    risk_type: str = "unclassified"
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the memory entry to a plain dictionary."""
@@ -172,6 +259,9 @@ class MemoryEntry:
             response_text=str(data["response_text"]),
             eval_result=dict(data.get("eval_result", {})),
             tags=list(data.get("tags", [])),
+            prompt_bucket=str(data.get("prompt_bucket", "general")),
+            skill_version=str(data.get("skill_version", "0.0.0")),
+            risk_type=str(data.get("risk_type", "unclassified")),
         )
 
 
@@ -193,6 +283,9 @@ class AgentState:
     workflow_name: str = "basic"
     planner_flags: dict[str, Any] = field(default_factory=dict)
     artifacts: dict[str, Any] = field(default_factory=dict)
+    current_prompt_bucket: str = "general"
+    current_risk_type: str = "unclassified"
+    selected_skill_names: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the state to a plain dictionary."""

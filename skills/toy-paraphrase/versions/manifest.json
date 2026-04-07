@@ -1,0 +1,809 @@
+{
+  "skill_name": "toy-paraphrase",
+  "active_version": "0.1.0",
+  "versions": {
+    "0.1.0": {
+      "status": "active",
+      "parent_version": null,
+      "source": "bootstrap",
+      "created_at": "2026-04-02T11:39:00.390697+00:00",
+      "notes": "Initialized from skill.json.",
+      "draft_artifact": {},
+      "metrics": {
+        "attempts": 147,
+        "successes": 147,
+        "asr": 1.0,
+        "avg_usefulness_score": 0.8499999999999994,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.8499999999999994
+      },
+      "last_observed_at": "2026-04-03T05:51:50.974821+00:00"
+    }
+  },
+  "events": [
+    {
+      "timestamp": "2026-04-02T12:26:37.774049+00:00",
+      "run_id": "run-20260402T122637Z-efb467be",
+      "step_id": 0,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:26:38.015385+00:00",
+      "run_id": "run-20260402T122637Z-efb467be",
+      "step_id": 1,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:26:38.253752+00:00",
+      "run_id": "run-20260402T122637Z-efb467be",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:26:38.493290+00:00",
+      "run_id": "run-20260402T122637Z-efb467be",
+      "step_id": 3,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:26:55.761517+00:00",
+      "run_id": "run-20260402T122655Z-1227a062",
+      "step_id": 0,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:26:56.007993+00:00",
+      "run_id": "run-20260402T122655Z-1227a062",
+      "step_id": 1,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:26:56.253900+00:00",
+      "run_id": "run-20260402T122655Z-1227a062",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:36:53.231971+00:00",
+      "run_id": "run-20260402T123652Z-ad8b3e55",
+      "step_id": 0,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:36:53.489897+00:00",
+      "run_id": "run-20260402T123652Z-ad8b3e55",
+      "step_id": 1,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:36:53.928332+00:00",
+      "run_id": "run-20260402T123653Z-05921cb1",
+      "step_id": 0,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:36:54.167988+00:00",
+      "run_id": "run-20260402T123653Z-05921cb1",
+      "step_id": 1,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:36:54.412265+00:00",
+      "run_id": "run-20260402T123653Z-05921cb1",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:36:54.654481+00:00",
+      "run_id": "run-20260402T123653Z-05921cb1",
+      "step_id": 3,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:41:56.896765+00:00",
+      "run_id": "run-20260402T124156Z-79fb3dcd",
+      "step_id": 0,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:41:57.137573+00:00",
+      "run_id": "run-20260402T124156Z-79fb3dcd",
+      "step_id": 1,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:41:57.379617+00:00",
+      "run_id": "run-20260402T124156Z-79fb3dcd",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:41:57.626145+00:00",
+      "run_id": "run-20260402T124156Z-79fb3dcd",
+      "step_id": 3,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:58:31.993451+00:00",
+      "run_id": "run-20260402T125830Z-e290e88c",
+      "step_id": 0,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:58:33.611727+00:00",
+      "run_id": "run-20260402T125830Z-e290e88c",
+      "step_id": 1,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:58:35.174499+00:00",
+      "run_id": "run-20260402T125830Z-e290e88c",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:58:36.759823+00:00",
+      "run_id": "run-20260402T125830Z-e290e88c",
+      "step_id": 3,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:59:08.984884+00:00",
+      "run_id": "run-20260402T125907Z-d5041f8d",
+      "step_id": 0,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:59:10.545835+00:00",
+      "run_id": "run-20260402T125907Z-d5041f8d",
+      "step_id": 1,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:59:12.142343+00:00",
+      "run_id": "run-20260402T125907Z-d5041f8d",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T12:59:13.794782+00:00",
+      "run_id": "run-20260402T125907Z-d5041f8d",
+      "step_id": 3,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:01:41.576655+00:00",
+      "run_id": "run-20260402T130139Z-dc9b99fa",
+      "step_id": 0,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:01:43.089492+00:00",
+      "run_id": "run-20260402T130139Z-dc9b99fa",
+      "step_id": 1,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:01:44.666458+00:00",
+      "run_id": "run-20260402T130139Z-dc9b99fa",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-02T13:01:46.115915+00:00",
+      "run_id": "run-20260402T130139Z-dc9b99fa",
+      "step_id": 3,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T03:00:05.718038+00:00",
+      "run_id": "run-20260403T030003Z-5726ca13",
+      "step_id": 0,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T03:00:07.365049+00:00",
+      "run_id": "run-20260403T030003Z-5726ca13",
+      "step_id": 1,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T03:00:09.082941+00:00",
+      "run_id": "run-20260403T030003Z-5726ca13",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T03:00:10.655878+00:00",
+      "run_id": "run-20260403T030003Z-5726ca13",
+      "step_id": 3,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T03:33:29.284628+00:00",
+      "run_id": "run-20260403T033327Z-39144625",
+      "step_id": 0,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T03:33:30.916136+00:00",
+      "run_id": "run-20260403T033327Z-39144625",
+      "step_id": 1,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T03:33:32.652743+00:00",
+      "run_id": "run-20260403T033327Z-39144625",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T03:33:34.383222+00:00",
+      "run_id": "run-20260403T033327Z-39144625",
+      "step_id": 3,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T04:59:42.477111+00:00",
+      "run_id": "run-20260403T045941Z-f9b070bd",
+      "step_id": 0,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T04:59:43.212728+00:00",
+      "run_id": "run-20260403T045941Z-f9b070bd",
+      "step_id": 1,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T04:59:43.947673+00:00",
+      "run_id": "run-20260403T045941Z-f9b070bd",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T04:59:44.689212+00:00",
+      "run_id": "run-20260403T045941Z-f9b070bd",
+      "step_id": 3,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T05:00:09.649923+00:00",
+      "run_id": "run-20260403T050008Z-54fb89b9",
+      "step_id": 0,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T05:00:10.392465+00:00",
+      "run_id": "run-20260403T050008Z-54fb89b9",
+      "step_id": 1,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T05:00:11.126471+00:00",
+      "run_id": "run-20260403T050008Z-54fb89b9",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T05:00:11.866013+00:00",
+      "run_id": "run-20260403T050008Z-54fb89b9",
+      "step_id": 3,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T05:14:08.163371+00:00",
+      "run_id": "run-20260403T051406Z-e6372fde",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T05:40:34.044700+00:00",
+      "run_id": "run-20260403T054032Z-e51c234b",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T05:44:18.818591+00:00",
+      "run_id": "run-20260403T054416Z-2fcc418d",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    },
+    {
+      "timestamp": "2026-04-03T05:51:50.974824+00:00",
+      "run_id": "run-20260403T055149Z-a5c0bc96",
+      "step_id": 2,
+      "skill_name": "toy-paraphrase",
+      "version": "0.1.0",
+      "decision": "observe",
+      "metrics": {
+        "attempts": 3,
+        "successes": 3,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85,
+        "asr": 1.0
+      }
+    }
+  ]
+}

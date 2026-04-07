@@ -13,5 +13,64 @@
     "low diversity across personas",
     "overly generic outputs",
     "filtered seed prompt reduces specificity"
-  ]
+  ],
+  "family": "toy-persona",
+  "variant": "persona-core",
+  "status": "active",
+  "applicability": {
+    "prompt_buckets": [
+      "roleplay_style",
+      "educational_explanation",
+      "safety_sensitive",
+      "general"
+    ],
+    "target_traits": ["chat", "instruction_following"],
+    "memory_tags": ["useful", "needs_diversity"],
+    "preferred_stages": ["search"]
+  },
+  "parameters_schema": {
+    "type": "object",
+    "properties": {
+      "persona_count": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5,
+        "default": 3
+      }
+    },
+    "required": []
+  },
+  "retrieval_hints": {
+    "lexical_triggers": [
+      "role",
+      "persona",
+      "teacher",
+      "friendly",
+      "guide",
+      "librarian",
+      "curator"
+    ],
+    "memory_keys": ["skill_counts", "recent_skill_names", "toy-persona"],
+    "prompt_buckets": ["roleplay_style", "educational_explanation"]
+  },
+  "composition": {
+    "compatible_families": ["toy-paraphrase", "toy-encoding"],
+    "conflicts_with": [],
+    "pipeline_role": "seed_transform"
+  },
+  "refinement": {
+    "allowed_operations": ["patch_suggestions", "draft_variant"],
+    "mutable_fields": ["templates", "persona_count", "rationale_style"],
+    "promotion_metric": "avg_overall_score",
+    "rollback_metric": "avg_overall_score"
+  },
+  "evaluation_focus": ["usefulness_score", "diversity_score"],
+  "safety_scope": {
+    "mode": "harmless_mock_only",
+    "disallowed_content": [
+      "real_jailbreak_instructions",
+      "real_bypass_workflows",
+      "malware_or_weapon_content"
+    ]
+  }
 }

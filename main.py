@@ -9,12 +9,99 @@ from pathlib import Path
 from core.planner_loop import PlannerLoop
 
 
+DEFAULT_SEED_PROMPT_FILE = Path(
+    "/mnt/shared-storage-user/wenxiaoyu/MAGIC/data/safety/vanilla_harmful_dataset.jsonl"
+)
+
+
+def _maybe_backend_override(enabled: bool | None, enabled_backend: str, disabled_backend: str) -> dict[str, object]:
+    """Build an optional backend override from a tri-state enable flag."""
+    if enabled is None:
+        return {}
+    return {
+        "backend": enabled_backend if enabled else disabled_backend,
+    }
+
+
+def _maybe_guard_override(enabled: bool | None) -> dict[str, object]:
+    """Build an optional guard-model override from a tri-state enable flag."""
+    if enabled is None:
+        return {}
+    return {
+        "guard_model": {
+            "enabled": enabled,
+        }
+    }
+
+
+def _read_seed_prompt_from_jsonl(path: Path, *, index: int, field: str) -> str:
+    """Read one prompt field from a JSONL dataset by row index."""
+    if index < 0:
+        raise ValueError("seed prompt index must be >= 0")
+    if not path.exists():
+        raise FileNotFoundError(f"seed prompt file does not exist: {path}")
+
+    with path.open("r", encoding="utf-8") as handle:
+        for current_index, line in enumerate(handle):
+            if current_index != index:
+                continue
+            payload = json.loads(line)
+            prompt = str(payload.get(field, "")).strip()
+            if not prompt:
+                raise ValueError(
+                    f"seed prompt field '{field}' is empty at index {index} in {path}"
+                )
+            return prompt
+
+    raise IndexError(f"seed prompt index {index} is out of range for {path}")
+
+
+def _resolve_seed_prompt(args: argparse.Namespace) -> str:
+    """Resolve the seed prompt from CLI text or a configured JSONL dataset."""
+    if args.seed_prompt is not None:
+        return str(args.seed_prompt)
+
+    seed_prompt_file = (
+        Path(args.seed_prompt_file)
+        if args.seed_prompt_file is not None
+        else DEFAULT_SEED_PROMPT_FILE
+    )
+    return _read_seed_prompt_from_jsonl(
+        seed_prompt_file,
+        index=args.seed_prompt_index,
+        field=args.seed_prompt_field,
+    )
+
+
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Run the toy skill-based safety evaluation framework."
     )
-    parser.add_argument("--seed_prompt", required=True, help="Initial prompt to process.")
+    parser.add_argument(
+        "--seed_prompt",
+        default=None,
+        help="Initial prompt to process. If omitted, a prompt is loaded from the JSONL dataset.",
+    )
+    parser.add_argument(
+        "--seed-prompt-file",
+        default=None,
+        help=(
+            "Optional JSONL dataset to read prompts from. Defaults to the vanilla harmful dataset "
+            "when --seed_prompt is not provided."
+        ),
+    )
+    parser.add_argument(
+        "--seed-prompt-index",
+        type=int,
+        default=0,
+        help="Row index to read from the JSONL prompt dataset.",
+    )
+    parser.add_argument(
+        "--seed-prompt-field",
+        default="vanilla",
+        help="JSON field to use when loading the seed prompt from a dataset.",
+    )
     parser.add_argument(
         "--workflow",
         default="basic",
@@ -27,25 +114,22 @@ def parse_args() -> argparse.Namespace:
         help="Optional override for maximum planner steps.",
     )
     parser.add_argument(
-        "--planner_backend",
-        choices=["rule_based", "openai_compatible"],
+        "--planner-enabled",
+        action=argparse.BooleanOptionalAction,
         default=None,
-        help="Optional planner backend override.",
+        help="Enable or disable the planner backend defined in config.yaml.",
     )
     parser.add_argument(
-        "--planner_base_url",
+        "--guard-enabled",
+        action=argparse.BooleanOptionalAction,
         default=None,
-        help="Optional OpenAI-compatible planner base URL override.",
+        help="Enable or disable the guard model defined in config.yaml.",
     )
     parser.add_argument(
-        "--planner_model",
+        "--environment-enabled",
+        action=argparse.BooleanOptionalAction,
         default=None,
-        help="Optional OpenAI-compatible planner model name override.",
-    )
-    parser.add_argument(
-        "--planner_api_key",
-        default=None,
-        help="Optional OpenAI-compatible planner API key override.",
+        help="Enable or disable the environment backend defined in config.yaml.",
     )
     return parser.parse_args()
 
@@ -53,23 +137,30 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     """Run the configured workflow and print a compact summary."""
     args = parse_args()
+    seed_prompt = _resolve_seed_prompt(args)
     project_root = Path(__file__).resolve().parent
-    planner_overrides: dict[str, object] = {}
-    openai_overrides: dict[str, object] = {}
-    if args.planner_backend is not None:
-        planner_overrides["backend"] = args.planner_backend
-    if args.planner_base_url is not None:
-        openai_overrides["base_url"] = args.planner_base_url
-    if args.planner_model is not None:
-        openai_overrides["model"] = args.planner_model
-    if args.planner_api_key is not None:
-        openai_overrides["api_key"] = args.planner_api_key
-    if openai_overrides:
-        planner_overrides["openai_compatible"] = openai_overrides
+    planner_overrides = _maybe_backend_override(
+        args.planner_enabled,
+        "openai_compatible",
+        "rule_based",
+    )
+    evaluator_overrides = _maybe_guard_override(
+        args.guard_enabled,
+    )
+    environment_overrides = _maybe_backend_override(
+        args.environment_enabled,
+        "openai_compatible",
+        "mock",
+    )
 
-    loop = PlannerLoop(project_root=project_root, planner_overrides=planner_overrides or None)
+    loop = PlannerLoop(
+        project_root=project_root,
+        planner_overrides=planner_overrides or None,
+        evaluator_overrides=evaluator_overrides or None,
+        environment_overrides=environment_overrides or None,
+    )
     summary = loop.run(
-        seed_prompt=args.seed_prompt,
+        seed_prompt=seed_prompt,
         workflow_name=args.workflow,
         max_steps=args.max_steps,
     )

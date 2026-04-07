@@ -51,15 +51,25 @@ class RuleBasedPlanner:
         escalation = workflows.get("escalation", basic)
 
         if stage == "search":
-            skills = self._choose_search_skills(state, basic)
             return [
                 PlanStep(
-                    action_type="invoke_skill",
-                    target=skill_name,
-                    args={"mode": "search"},
-                    reason="Search stage generates harmless candidate variants.",
+                    action_type="select_search_paths",
+                    target=None,
+                    args={
+                        "mode": "search",
+                        "search_pool": basic.get_group("search"),
+                        "path_count": int(
+                            basic.get_policy(
+                                "path_count",
+                                basic.get_policy("selected_skill_count", 1),
+                            )
+                        ),
+                        "path_length": int(basic.get_policy("path_length", 2)),
+                        "beam_width": int(basic.get_policy("beam_width", 2)),
+                        "exploration_weight": float(basic.get_policy("exploration_weight", 0.45)),
+                    },
+                    reason="Search stage chooses one structured search action over the available skill space.",
                 )
-                for skill_name in skills
             ]
 
         if stage == "refine":
@@ -126,13 +136,19 @@ class RuleBasedPlanner:
 
         if stage == "escalation_return":
             search_pool = escalation.get_group("return_search") or basic.get_group("search")
-            chosen = self._choose_from_pool(state, search_pool, count=1)
             return [
                 PlanStep(
-                    action_type="invoke_skill",
-                    target=chosen[0],
-                    args={"mode": "post_escalation"},
-                    reason="Return from escalation to the normal toy skill space.",
+                    action_type="select_search_paths",
+                    target=None,
+                    args={
+                        "mode": "post_escalation",
+                        "search_pool": search_pool,
+                        "path_count": 1,
+                        "path_length": 1,
+                        "beam_width": 1,
+                        "exploration_weight": float(basic.get_policy("exploration_weight", 0.45)),
+                    },
+                    reason="Return from escalation with one focused search action.",
                 )
             ]
 
@@ -199,15 +215,6 @@ class RuleBasedPlanner:
                 state.active_workflow_stage = "search"
             elif state.active_workflow_stage in {"escalation_meta", "escalation_discover"}:
                 state.active_workflow_stage = escalation.get_policy("return_stage", "escalation_return")
-
-    def _choose_search_skills(self, state: AgentState, workflow: Workflow) -> list[str]:
-        """Select search skills, preferring less-used ones."""
-        count = (
-            workflow.get_policy("initial_skill_count", 2)
-            if state.memory_summary.get("total_entries", 0) == 0
-            else workflow.get_policy("continued_skill_count", 1)
-        )
-        return self._choose_from_pool(state, workflow.get_group("search"), count=count)
 
     def _choose_from_pool(
         self,
@@ -315,19 +322,29 @@ class OpenAICompatiblePlanner(RuleBasedPlanner):
         fallback_skill = self._best_recent_skill(state) or basic.get_group("search")[0]
 
         if stage == "search":
-            count = (
-                basic.get_policy("initial_skill_count", 2)
-                if state.memory_summary.get("total_entries", 0) == 0
-                else basic.get_policy("continued_skill_count", 1)
-            )
             return {
-                "required_count": int(count),
+                "required_count": 1,
                 "allowed_targets": {
-                    "invoke_skill": basic.get_group("search"),
+                    "select_search_paths": [None],
+                    "stop": [None],
                 },
                 "default_args": {
-                    "invoke_skill": {"mode": "search"},
+                    "select_search_paths": {
+                        "mode": "search",
+                        "search_pool": basic.get_group("search"),
+                        "path_count": int(
+                            basic.get_policy(
+                                "path_count",
+                                basic.get_policy("selected_skill_count", 1),
+                            )
+                        ),
+                        "path_length": int(basic.get_policy("path_length", 2)),
+                        "beam_width": int(basic.get_policy("beam_width", 2)),
+                        "exploration_weight": float(basic.get_policy("exploration_weight", 0.45)),
+                    },
+                    "stop": {},
                 },
+                "allowed_search_pool": basic.get_group("search"),
             }
 
         if stage == "refine":
@@ -335,9 +352,11 @@ class OpenAICompatiblePlanner(RuleBasedPlanner):
                 "required_count": 1,
                 "allowed_targets": {
                     "invoke_meta_skill": ["refine-skill"],
+                    "stop": [None],
                 },
                 "default_args": {
                     "invoke_meta_skill": {"skill_name": fallback_skill},
+                    "stop": {},
                 },
             }
 
@@ -362,11 +381,21 @@ class OpenAICompatiblePlanner(RuleBasedPlanner):
             return {
                 "required_count": 1,
                 "allowed_targets": {
-                    "invoke_skill": escalation.get_group("return_search") or basic.get_group("search"),
+                    "select_search_paths": [None],
+                    "stop": [None],
                 },
                 "default_args": {
-                    "invoke_skill": {"mode": "post_escalation"},
+                    "select_search_paths": {
+                        "mode": "post_escalation",
+                        "search_pool": escalation.get_group("return_search") or basic.get_group("search"),
+                        "path_count": 1,
+                        "path_length": 1,
+                        "beam_width": 1,
+                        "exploration_weight": float(basic.get_policy("exploration_weight", 0.45)),
+                    },
+                    "stop": {},
                 },
+                "allowed_search_pool": escalation.get_group("return_search") or basic.get_group("search"),
             }
 
         if stage == "analysis":
@@ -420,9 +449,9 @@ class OpenAICompatiblePlanner(RuleBasedPlanner):
                     "schema_hint": {
                         "plan_steps": [
                             {
-                                "action_type": "invoke_skill",
-                                "target": "toy-persona",
-                                "args": {"mode": "search"},
+                                "action_type": "select_search_paths",
+                                "target": None,
+                                "args": {"search_pool": ["toy-persona"], "path_count": 1},
                                 "reason": "why this step is appropriate now"
                             }
                         ]
@@ -541,6 +570,18 @@ class OpenAICompatiblePlanner(RuleBasedPlanner):
                 if len(recent_skill_names) < 2:
                     raise ValueError("combine-skills requires at least two recent skills.")
                 merged_args.setdefault("skill_names", recent_skill_names[:2])
+            if action_type == "select_search_paths":
+                allowed_search_pool = set(stage_options.get("allowed_search_pool", []))
+                search_pool = merged_args.get("search_pool", [])
+                if not isinstance(search_pool, list) or not search_pool:
+                    raise ValueError("select_search_paths requires a non-empty search_pool list.")
+                if any(str(skill_name) not in allowed_search_pool for skill_name in search_pool):
+                    raise ValueError(
+                        f"select_search_paths returned a search pool outside the allowed set: {search_pool}"
+                    )
+                for key in ("path_count", "path_length", "beam_width"):
+                    merged_args[key] = max(int(merged_args.get(key, 1)), 1)
+                merged_args["exploration_weight"] = float(merged_args.get("exploration_weight", 0.45))
 
             validated.append(
                 PlanStep(
