@@ -11,15 +11,11 @@ skill_groups:
     - evaluation-mock
 
 policy:
-  initial_skill_count: 2
-  continued_skill_count: 1
-  selected_skill_count: 1
-  path_count: 1
-  path_length: 2
-  beam_width: 2
-  exploration_weight: 0.45
-  meta_refine_enabled: true
-  promotion_margin: 0.03
+  path_count: 2
+  path_length: 1
+  beam_width: 4
+  exploration_weight: 0.30
+  promotion_margin: 0.05
   escalation_stage: escalation_memory
   refine_stage: refine
 

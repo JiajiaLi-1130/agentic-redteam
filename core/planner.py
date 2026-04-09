@@ -277,6 +277,10 @@ class OpenAICompatiblePlanner(RuleBasedPlanner):
     ) -> list[PlanStep]:
         """Use the remote planner for high-level choice stages and fallback safely when needed."""
         fallback_plan = super().plan(state, workflows, registry)
+        if self._requires_deterministic_transition(fallback_plan):
+            state.planner_flags["planner_backend"] = "rule_based"
+            state.planner_flags["planner_mode"] = "deterministic_transition"
+            return fallback_plan
 
         if state.active_workflow_stage not in self.REMOTE_STAGES:
             state.planner_flags["planner_backend"] = "rule_based"
@@ -308,6 +312,12 @@ class OpenAICompatiblePlanner(RuleBasedPlanner):
             if self.fallback_to_rule_based:
                 return fallback_plan
             raise
+
+    def _requires_deterministic_transition(self, fallback_plan: list[PlanStep]) -> bool:
+        """Keep the runtime on local deterministic transitions for queued execution work."""
+        if not fallback_plan:
+            return False
+        return fallback_plan[0].action_type in {"execute_candidates", "evaluate_candidates"}
 
     def _build_stage_options(
         self,

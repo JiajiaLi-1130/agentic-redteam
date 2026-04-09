@@ -9,20 +9,20 @@ from main import _read_seed_prompt_from_jsonl, _resolve_seed_prompt
 
 
 def test_read_seed_prompt_from_jsonl_by_index(tmp_path: Path) -> None:
-    """The helper should read one JSONL row by index and field."""
+    """The helper should read one JSONL row by index."""
     dataset = tmp_path / "dataset.jsonl"
     dataset.write_text(
         '\n'.join(
             [
-                '{"vanilla":"prompt zero","adversarial":"adv zero"}',
-                '{"vanilla":"prompt one","adversarial":"adv one"}',
+                '{"query":"prompt zero"}',
+                '{"query":"prompt one"}',
             ]
         )
         + '\n',
         encoding="utf-8",
     )
 
-    prompt = _read_seed_prompt_from_jsonl(dataset, index=1, field="vanilla")
+    prompt = _read_seed_prompt_from_jsonl(dataset, index=1)
 
     assert prompt == "prompt one"
 
@@ -30,12 +30,11 @@ def test_read_seed_prompt_from_jsonl_by_index(tmp_path: Path) -> None:
 def test_resolve_seed_prompt_prefers_explicit_cli_value(tmp_path: Path) -> None:
     """An explicit CLI prompt should win over any dataset path."""
     dataset = tmp_path / "dataset.jsonl"
-    dataset.write_text('{"vanilla":"dataset prompt"}\n', encoding="utf-8")
+    dataset.write_text('{"query":"dataset prompt"}\n', encoding="utf-8")
     args = argparse.Namespace(
         seed_prompt="cli prompt",
         seed_prompt_file=str(dataset),
         seed_prompt_index=0,
-        seed_prompt_field="vanilla",
     )
 
     prompt = _resolve_seed_prompt(args)

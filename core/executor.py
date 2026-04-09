@@ -14,7 +14,7 @@ from core.schemas import SkillContext, SkillExecutionResult, SkillSpec
 class SkillExecutor:
     """Run skill entry scripts and parse their outputs."""
 
-    def __init__(self, project_root: Path, timeout_seconds: int = 10) -> None:
+    def __init__(self, project_root: Path, timeout_seconds: int = 30) -> None:
         self.project_root = project_root
         self.timeout_seconds = timeout_seconds
 

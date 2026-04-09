@@ -158,8 +158,8 @@ def test_selector_compatibility_keeps_composable_pair() -> None:
     assert len(set(paths[0].skill_names)) == 2
 
 
-def test_version_manager_promotes_and_rolls_back(tmp_path: Path) -> None:
-    """Version manager should record promote or rollback decisions in one skill folder."""
+def test_version_manager_promotes_and_rejects_without_rollback(tmp_path: Path) -> None:
+    """Version manager should only promote better candidates and otherwise reject them."""
     skill_root = tmp_path / "toy-skill"
     skill_root.mkdir(parents=True)
     registry = SkillRegistry(
@@ -182,6 +182,20 @@ def test_version_manager_promotes_and_rolls_back(tmp_path: Path) -> None:
     )
     manager = SkillVersionManager(registry)
     manager.ensure_manifests()
+    manager.observe_active_run(
+        skill_name="toy-skill",
+        version="0.1.0",
+        metrics={
+            "attempts": 3,
+            "successes": 2,
+            "asr": 2 / 3,
+            "avg_usefulness_score": 0.65,
+            "avg_refusal_score": 0.2,
+            "avg_overall_score": 0.64,
+        },
+        run_id="baseline-run",
+        step_id=0,
+    )
 
     promote_event = manager.consider_refinement(
         skill_name="toy-skill",
@@ -197,9 +211,9 @@ def test_version_manager_promotes_and_rolls_back(tmp_path: Path) -> None:
         },
         promotion_margin=0.03,
         run_id="test-run",
-        step_id=0,
+        step_id=1,
     )
-    rollback_event = manager.consider_refinement(
+    reject_event = manager.consider_refinement(
         skill_name="toy-skill",
         base_version=manager.active_version("toy-skill"),
         draft_artifact={"draft_skill": {"name": "toy-skill-refined-draft-2"}},
@@ -213,12 +227,14 @@ def test_version_manager_promotes_and_rolls_back(tmp_path: Path) -> None:
         },
         promotion_margin=0.03,
         run_id="test-run",
-        step_id=1,
+        step_id=2,
     )
 
     assert promote_event["decision"] == "promote"
-    assert rollback_event["decision"] == "rollback"
+    assert reject_event["decision"] == "reject"
     assert manager.active_version("toy-skill") == "0.1.1"
     assert manager.active_draft_artifact("toy-skill") == {
         "draft_skill": {"name": "toy-skill-refined-draft"}
     }
+    manifest = manager.load_manifest("toy-skill")
+    assert manifest["versions"]["0.1.2"]["status"] == "rejected"

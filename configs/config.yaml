@@ -20,6 +20,19 @@ planner:
     max_tokens: 600
     fallback_to_rule_based: true
 
+meta_skills:
+  backend: openai_compatible
+  openai_compatible:
+    enabled: true
+    inherit_planner_endpoint: true
+    base_url: ""
+    model: ""
+    api_key: ""
+    timeout_seconds: 12
+    temperature: 0.2
+    max_tokens: 1200
+    fallback_to_template: true
+
 evaluator:
   backend: composite
   guard_model:

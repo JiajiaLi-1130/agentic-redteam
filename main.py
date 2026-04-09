@@ -9,9 +9,7 @@ from pathlib import Path
 from core.planner_loop import PlannerLoop
 
 
-DEFAULT_SEED_PROMPT_FILE = Path(
-    "/mnt/shared-storage-user/wenxiaoyu/MAGIC/data/safety/vanilla_harmful_dataset.jsonl"
-)
+DEFAULT_SEED_PROMPT_FILE = Path(__file__).resolve().parent / "data" / "seed_prompt.json"
 
 
 def _maybe_backend_override(enabled: bool | None, enabled_backend: str, disabled_backend: str) -> dict[str, object]:
@@ -34,8 +32,8 @@ def _maybe_guard_override(enabled: bool | None) -> dict[str, object]:
     }
 
 
-def _read_seed_prompt_from_jsonl(path: Path, *, index: int, field: str) -> str:
-    """Read one prompt field from a JSONL dataset by row index."""
+def _read_seed_prompt_from_jsonl(path: Path, *, index: int) -> str:
+    """Read one prompt from a JSONL dataset by row index."""
     if index < 0:
         raise ValueError("seed prompt index must be >= 0")
     if not path.exists():
@@ -46,11 +44,9 @@ def _read_seed_prompt_from_jsonl(path: Path, *, index: int, field: str) -> str:
             if current_index != index:
                 continue
             payload = json.loads(line)
-            prompt = str(payload.get(field, "")).strip()
+            prompt = str(payload.get("query", "")).strip()
             if not prompt:
-                raise ValueError(
-                    f"seed prompt field '{field}' is empty at index {index} in {path}"
-                )
+                raise ValueError(f"seed prompt query is empty at index {index} in {path}")
             return prompt
 
     raise IndexError(f"seed prompt index {index} is out of range for {path}")
@@ -69,7 +65,6 @@ def _resolve_seed_prompt(args: argparse.Namespace) -> str:
     return _read_seed_prompt_from_jsonl(
         seed_prompt_file,
         index=args.seed_prompt_index,
-        field=args.seed_prompt_field,
     )
 
 
@@ -87,7 +82,7 @@ def parse_args() -> argparse.Namespace:
         "--seed-prompt-file",
         default=None,
         help=(
-            "Optional JSONL dataset to read prompts from. Defaults to the vanilla harmful dataset "
+            "Optional JSONL dataset to read prompts from. Defaults to data/seed_prompt.json "
             "when --seed_prompt is not provided."
         ),
     )
@@ -96,11 +91,6 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=0,
         help="Row index to read from the JSONL prompt dataset.",
-    )
-    parser.add_argument(
-        "--seed-prompt-field",
-        default="vanilla",
-        help="JSON field to use when loading the seed prompt from a dataset.",
     )
     parser.add_argument(
         "--workflow",

@@ -1,4 +1,4 @@
-"""Skill family version tracking and lightweight promote/rollback decisions."""
+"""Skill family version tracking and stable-only promotion decisions."""
 
 from __future__ import annotations
 
@@ -135,7 +135,7 @@ class SkillVersionManager:
         run_id: str,
         step_id: int,
     ) -> dict[str, Any]:
-        """Promote a draft version when proxy metrics beat the active baseline."""
+        """Promote a draft only when it strictly beats the current stable version."""
         manifest = self.load_manifest(skill_name)
         active_version = str(manifest.get("active_version", base_version))
         active_metrics = dict(
@@ -147,9 +147,11 @@ class SkillVersionManager:
         candidate_score = float(metrics.get("avg_overall_score", 0.0))
         candidate_asr = float(metrics.get("asr", 0.0))
         baseline_asr = float(active_metrics.get("asr", 0.0))
+        candidate_attempts = int(metrics.get("attempts", 0))
         should_promote = (
-            metrics.get("attempts", 0) > 0
-            and candidate_score >= baseline_score + promotion_margin
+            baseline_attempts > 0
+            and candidate_attempts > 0
+            and candidate_score > baseline_score + promotion_margin
             and candidate_asr >= baseline_asr
         )
 
@@ -165,30 +167,50 @@ class SkillVersionManager:
             "draft_artifact": draft_artifact,
         }
 
-        if should_promote or baseline_attempts == 0:
-            new_version = self._next_patch_version(active_version)
+        candidate_version = self._next_patch_version(
+            active_version,
+            existing_versions=manifest.get("versions", {}).keys(),
+        )
+
+        if should_promote:
             manifest["versions"][active_version]["status"] = "archived"
-            manifest["versions"][new_version] = {
+            manifest["versions"][candidate_version] = {
                 "status": "active",
                 "parent_version": active_version,
-                "source": "meta_refine_proxy",
+                "source": "meta_refine_validated",
                 "created_at": utc_now_iso(),
                 "notes": (
-                    "Promoted using the current batch as a proxy signal for the toy refinement draft. "
-                    "This is a structural placeholder until explicit A/B evaluation is implemented."
+                    "Promoted after candidate metrics exceeded the current stable version. "
+                    "The previous stable version was archived and the active version does not roll back."
                 ),
                 "draft_artifact": draft_artifact,
                 "metrics": dict(metrics),
             }
-            manifest["active_version"] = new_version
+            manifest["active_version"] = candidate_version
             event["decision"] = "promote"
-            event["new_version"] = new_version
+            event["new_version"] = candidate_version
         else:
-            event["decision"] = "rollback"
+            manifest["versions"][candidate_version] = {
+                "status": "rejected",
+                "parent_version": active_version,
+                "source": "meta_refine_candidate",
+                "created_at": utc_now_iso(),
+                "notes": (
+                    "Candidate draft did not beat the current stable version, "
+                    "so it was recorded and rejected without changing the active version."
+                ),
+                "draft_artifact": draft_artifact,
+                "metrics": dict(metrics),
+            }
+            event["decision"] = "reject"
             event["active_version"] = active_version
-            manifest.setdefault("events", []).append(event)
-            write_json(self._manifest_path(skill_name), manifest)
-            return event
+            event["candidate_version"] = candidate_version
+            if baseline_attempts <= 0:
+                event["reason"] = "stable_version_has_no_baseline_metrics"
+            elif candidate_attempts <= 0:
+                event["reason"] = "candidate_version_has_no_metrics"
+            else:
+                event["reason"] = "candidate_metrics_not_better_than_stable"
 
         manifest.setdefault("events", []).append(event)
         write_json(self._manifest_path(skill_name), manifest)
@@ -200,17 +222,26 @@ class SkillVersionManager:
         spec = self.registry.get(skill_name)
         return Path(spec.root_dir) / "versions" / "manifest.json"
 
-    def _next_patch_version(self, version: str) -> str:
-        """Increment the patch component of a semantic version string."""
+    def _next_patch_version(self, version: str, existing_versions=None) -> str:
+        """Increment the patch component of a semantic version string without collisions."""
         parts = version.split(".")
         if len(parts) != 3:
-            return f"{version}.1"
+            candidate = f"{version}.1"
+            existing = {str(item) for item in existing_versions or []}
+            while candidate in existing:
+                candidate = f"{candidate}.1"
+            return candidate
         major, minor, patch = parts
         try:
             patch_number = int(patch) + 1
         except ValueError:
             patch_number = 1
-        return f"{major}.{minor}.{patch_number}"
+        existing = {str(item) for item in existing_versions or []}
+        candidate = f"{major}.{minor}.{patch_number}"
+        while candidate in existing:
+            patch_number += 1
+            candidate = f"{major}.{minor}.{patch_number}"
+        return candidate
 
     def _empty_metrics(self) -> dict[str, Any]:
         """Return an empty metrics record."""

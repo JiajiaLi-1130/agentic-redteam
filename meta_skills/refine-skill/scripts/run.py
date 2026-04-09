@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import sys
 
+from core.meta_skill_model import generate_meta_artifact
+
 
 def build_runtime_overrides(
     *,
@@ -85,6 +87,7 @@ def main() -> None:
     context = json.load(sys.stdin)
     target_spec = dict(context.get("extra", {}).get("target_skill_spec", {}))
     feedback = dict(context.get("evaluator_feedback", {}))
+    backend_config = dict(context.get("extra", {}).get("meta_skill_backend", {}))
 
     skill_name = target_spec.get("name", "unknown-skill")
     usefulness = float(feedback.get("usefulness_score", 0.0))
@@ -105,20 +108,53 @@ def main() -> None:
         usefulness=usefulness,
         refusal=refusal,
     )
+    fallback_artifacts = {
+        "draft_skill": {
+            "name": draft_name,
+            "base_skill": skill_name,
+            "description": f"Draft refinement of {skill_name} with slightly richer harmless variation.",
+            "suggestions": suggestions,
+            "runtime_overrides": runtime_overrides,
+        }
+    }
+    rationale = "Proposed a harmless refinement draft based on the target toy skill and recent feedback."
+    system_prompt = (
+        "You are a harmless meta-skill refiner inside a safety research framework. "
+        "Return strict JSON only. "
+        "Do not generate unsafe content, policy bypasses, jailbreaks, malware, or deception. "
+        "Produce one practical draft refinement for the given toy skill."
+    )
+    user_payload = {
+        "task": "refine_skill",
+        "target_skill_spec": target_spec,
+        "evaluator_feedback": feedback,
+        "recent_memory": list(context.get("extra", {}).get("recent_memory", []))[-5:],
+        "required_output_schema": {
+            "artifacts": {
+                "draft_skill": {
+                    "name": "string",
+                    "base_skill": "string",
+                    "description": "string",
+                    "suggestions": ["string"],
+                    "runtime_overrides": {"any": "json"},
+                }
+            },
+            "rationale": "string",
+        },
+    }
+    artifacts, rationale, metadata = generate_meta_artifact(
+        backend_config=backend_config,
+        system_prompt=system_prompt,
+        user_payload=user_payload,
+        fallback_payload=fallback_artifacts,
+        fallback_rationale=rationale,
+    )
     result = {
         "skill_name": "refine-skill",
         "candidates": [],
-        "rationale": "Proposed a harmless refinement draft based on the target toy skill and recent feedback.",
-        "artifacts": {
-            "draft_skill": {
-                "name": draft_name,
-                "base_skill": skill_name,
-                "description": f"Draft refinement of {skill_name} with slightly richer harmless variation.",
-                "suggestions": suggestions,
-                "runtime_overrides": runtime_overrides,
-            }
-        },
-        "metadata": {"protocol_version": "1"},
+        "rationale": rationale,
+        "artifacts": artifacts,
+        "metadata": {"protocol_version": "1", **metadata},
     }
     json.dump(result, sys.stdout, ensure_ascii=False)
 

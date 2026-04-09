@@ -52,7 +52,10 @@ class PlannerLoop:
         self.version_manager = SkillVersionManager(self.registry)
         self.version_manager.ensure_manifests()
         self.version_manager.sync_registry_versions()
-        self.executor = SkillExecutor(project_root=project_root)
+        self.executor = SkillExecutor(
+            project_root=project_root,
+            timeout_seconds=self._executor_timeout_seconds(),
+        )
         self.environment = build_environment(
             target_profile=dict(self.config["environment"]["target_profile"]),
             config=dict(self.config.get("environment", {})),
@@ -218,6 +221,7 @@ class PlannerLoop:
         workflows: dict[str, Workflow],
     ) -> None:
         """Dispatch one plan step."""
+        stage_before = state.active_workflow_stage
         if plan_step.action_type in {
             "invoke_skill",
             "invoke_meta_skill",
@@ -242,6 +246,16 @@ class PlannerLoop:
                     workflow=workflow,
                 )
             self.planner.advance_after_action(state, plan_step, workflows)
+            self._log_step_summary(
+                run_dir=run_dir,
+                state=state,
+                plan_step=plan_step,
+                stage_before=stage_before,
+                extra={
+                    "generated_candidates": len(result.candidates),
+                    "artifact_keys": sorted(result.artifacts),
+                },
+            )
             return
 
         if plan_step.action_type == "select_search_paths":
@@ -255,10 +269,32 @@ class PlannerLoop:
                 run_dir=run_dir,
                 plan_step=plan_step,
             )
+            selection = list(state.artifacts.get("last_selection", []))
+            self._log_step_summary(
+                run_dir=run_dir,
+                state=state,
+                plan_step=plan_step,
+                stage_before=stage_before,
+                extra={
+                    "selected_paths": [item.get("skill_names", []) for item in selection],
+                    "path_count": len(selection),
+                },
+            )
             return
 
         if plan_step.action_type == "execute_candidates":
+            pending_before = len(state.pending_candidates)
             self._execute_candidates(state, budget, run_dir)
+            self._log_step_summary(
+                run_dir=run_dir,
+                state=state,
+                plan_step=plan_step,
+                stage_before=stage_before,
+                extra={
+                    "executed_candidates": len(state.last_responses),
+                    "pending_candidates_before": pending_before,
+                },
+            )
             return
 
         if plan_step.action_type == "evaluate_candidates":
@@ -275,10 +311,33 @@ class PlannerLoop:
                 path_metrics=path_metrics,
             )
             self.planner.route_after_evaluation(state, workflows)
+            self._log_step_summary(
+                run_dir=run_dir,
+                state=state,
+                plan_step=plan_step,
+                stage_before=stage_before,
+                extra={
+                    "evaluated_candidates": sum(
+                        int(metric.get("attempts", 0)) for metric in skill_metrics.values()
+                    ),
+                    "best_skill": eval_payload.get("best_skill"),
+                    "success": eval_payload.get("success"),
+                    "usefulness_score": eval_payload.get("usefulness_score"),
+                    "refusal_score": eval_payload.get("refusal_score"),
+                    "path_metric_keys": sorted(path_metrics),
+                },
+            )
             return
 
         if plan_step.action_type == "stop":
             state.active_workflow_stage = "stop"
+            self._log_step_summary(
+                run_dir=run_dir,
+                state=state,
+                plan_step=plan_step,
+                stage_before=stage_before,
+                extra={},
+            )
             return
 
         raise ValueError(f"Unsupported action type: {plan_step.action_type}")
@@ -748,7 +807,7 @@ class PlannerLoop:
         result: SkillExecutionResult,
         workflow: Workflow,
     ) -> None:
-        """Promote or rollback the refined skill using the latest recorded metrics."""
+        """Promote or reject the refined skill using the latest recorded metrics."""
         best_skill = str(state.last_eval.get("best_skill") or "")
         if not best_skill:
             return
@@ -788,6 +847,7 @@ class PlannerLoop:
             "requested_skill": skill_name,
             "active_skill_version": active_skill_version,
             "active_skill_draft": self.version_manager.active_draft_artifact(skill_name),
+            "meta_skill_backend": self._resolve_meta_skill_backend_config(),
             "current_risk_type": state.current_risk_type,
             "memory_matrix": memory.matrix(),
             "path_stats": memory.path_stats(),
@@ -825,5 +885,60 @@ class PlannerLoop:
             {
                 "timestamp": utc_now_iso(),
                 "state": state.to_dict(),
+            },
+        )
+
+    def _resolve_meta_skill_backend_config(self) -> dict[str, Any]:
+        """Resolve the model backend config used by model-backed meta-skills."""
+        meta_config = dict(self.config.get("meta_skills", {}).get("openai_compatible", {}))
+        if not meta_config:
+            return {"enabled": False}
+
+        if bool(meta_config.get("inherit_planner_endpoint", False)):
+            planner_config = dict(self.config.get("planner", {}).get("openai_compatible", {}))
+            for key in ("base_url", "model", "api_key"):
+                if not meta_config.get(key):
+                    meta_config[key] = planner_config.get(key, "")
+        return meta_config
+
+    def _executor_timeout_seconds(self) -> int:
+        """Choose a subprocess timeout that safely exceeds nested backend calls."""
+        planner_timeout = int(self.config.get("planner", {}).get("openai_compatible", {}).get("timeout_seconds", 8))
+        meta_timeout = int(
+            self.config.get("meta_skills", {}).get("openai_compatible", {}).get("timeout_seconds", 12)
+        )
+        evaluator_timeout = int(
+            self.config.get("evaluator", {}).get("guard_model", {}).get("timeout_seconds", 8)
+        )
+        environment_timeout = int(
+            self.config.get("environment", {}).get("openai_compatible", {}).get("timeout_seconds", 12)
+        )
+        return max(30, planner_timeout, meta_timeout, evaluator_timeout, environment_timeout) + 5
+
+    def _log_step_summary(
+        self,
+        *,
+        run_dir: Path,
+        state: AgentState,
+        plan_step,
+        stage_before: str,
+        extra: dict[str, Any],
+    ) -> None:
+        """Append a compact per-step summary that is easier to read than the full state trace."""
+        append_jsonl(
+            run_dir / "steps.jsonl",
+            {
+                "timestamp": utc_now_iso(),
+                "step_id": state.current_step,
+                "action_type": plan_step.action_type,
+                "target": plan_step.target,
+                "stage_before": stage_before,
+                "stage_after": state.active_workflow_stage,
+                "pending_candidates": len(state.pending_candidates),
+                "last_responses": len(state.last_responses),
+                "memory_entries": int(state.memory_summary.get("total_entries", 0)),
+                "selected_skill_names": list(state.selected_skill_names),
+                "planner_flags": dict(state.planner_flags),
+                "extra": extra,
             },
         )

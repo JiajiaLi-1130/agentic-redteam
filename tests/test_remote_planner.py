@@ -91,3 +91,29 @@ def test_remote_planner_falls_back_on_invalid_json(monkeypatch) -> None:
     assert len(plan) == 1
     assert plan[0].action_type == "select_search_paths"
     assert state.planner_flags["planner_mode"] == "remote_fallback"
+
+
+def test_remote_planner_keeps_pending_candidates_on_local_transition(monkeypatch) -> None:
+    """Remote planner should not override execute/evaluate transitions when work is queued."""
+    specs = SkillLoader(PROJECT_ROOT).discover()
+    registry = SkillRegistry(specs)
+    planner = OpenAICompatiblePlanner(
+        {
+            "base_url": "http://example.invalid/v1",
+            "model": "orm",
+            "api_key": "FAKE_API_KEY",
+        }
+    )
+    state = make_state()
+    state.pending_candidates = [{"text": "hello", "source_skill": "toy-paraphrase"}]
+
+    def _unexpected_remote_call(**_kwargs):
+        raise AssertionError("remote planner should not be called when candidates are pending")
+
+    monkeypatch.setattr(planner, "_call_remote_planner", _unexpected_remote_call)
+
+    plan = planner.plan(state, load_workflows(), registry)
+
+    assert len(plan) == 1
+    assert plan[0].action_type == "execute_candidates"
+    assert state.planner_flags["planner_mode"] == "deterministic_transition"

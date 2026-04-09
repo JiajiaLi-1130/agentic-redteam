@@ -337,26 +337,8 @@ class SearchSkillSelector:
             ucb_bonus = self.exploration_weight * math.sqrt(
                 math.log(total_risk_attempts + len(search_pool) + 1.0) / (attempts + 1.0)
             )
-        prompt_affinity = self._prompt_affinity(
-            seed_prompt=seed_prompt,
-            prompt_bucket=prompt_bucket,
-            spec=spec,
-            skill_name=skill_name,
-        )
-        version_bonus = self._version_bonus(version)
-        recent_penalty = 0.03 if skill_name in memory_store.recent_skill_names(limit=3) else 0.0
-        evaluation_bonus = self._evaluation_focus_bonus(spec, prompt_bucket)
-        depth_penalty = 0.02 * step_index
-        score = (
-            asr
-            + 0.20 * avg_overall
-            + prompt_affinity
-            + ucb_bonus
-            + version_bonus
-            + evaluation_bonus
-            - recent_penalty
-            - depth_penalty
-        )
+        prompt_affinity = 0.0
+        score = asr + ucb_bonus
 
         return SearchNode(
             skill_name=skill_name,
@@ -368,9 +350,8 @@ class SearchSkillSelector:
             avg_overall_score=avg_overall,
             active_version=version,
             reason=(
-                f"Node '{skill_name}' at depth {step_index} used asr={asr:.2f}, "
-                f"ucb={ucb_bonus:.2f}, affinity={prompt_affinity:.2f}, "
-                f"avg_overall={avg_overall:.2f}, version={version}."
+                f"Node '{skill_name}' at depth {step_index} used "
+                f"score=asr({asr:.2f})+ucb({ucb_bonus:.2f}) with version={version}."
             ),
         )
 
