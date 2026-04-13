@@ -12,26 +12,6 @@ from core.planner_loop import PlannerLoop
 DEFAULT_SEED_PROMPT_FILE = Path(__file__).resolve().parent / "data" / "seed_prompt.json"
 
 
-def _maybe_backend_override(enabled: bool | None, enabled_backend: str, disabled_backend: str) -> dict[str, object]:
-    """Build an optional backend override from a tri-state enable flag."""
-    if enabled is None:
-        return {}
-    return {
-        "backend": enabled_backend if enabled else disabled_backend,
-    }
-
-
-def _maybe_guard_override(enabled: bool | None) -> dict[str, object]:
-    """Build an optional guard-model override from a tri-state enable flag."""
-    if enabled is None:
-        return {}
-    return {
-        "guard_model": {
-            "enabled": enabled,
-        }
-    }
-
-
 def _read_seed_prompt_from_jsonl(path: Path, *, index: int) -> str:
     """Read one prompt from a JSONL dataset by row index."""
     if index < 0:
@@ -129,25 +109,12 @@ def main() -> None:
     args = parse_args()
     seed_prompt = _resolve_seed_prompt(args)
     project_root = Path(__file__).resolve().parent
-    planner_overrides = _maybe_backend_override(
-        args.planner_enabled,
-        "openai_compatible",
-        "rule_based",
-    )
-    evaluator_overrides = _maybe_guard_override(
-        args.guard_enabled,
-    )
-    environment_overrides = _maybe_backend_override(
-        args.environment_enabled,
-        "openai_compatible",
-        "mock",
-    )
 
     loop = PlannerLoop(
         project_root=project_root,
-        planner_overrides=planner_overrides or None,
-        evaluator_overrides=evaluator_overrides or None,
-        environment_overrides=environment_overrides or None,
+        planner_enabled=args.planner_enabled,
+        guard_enabled=args.guard_enabled,
+        environment_enabled=args.environment_enabled,
     )
     summary = loop.run(
         seed_prompt=seed_prompt,

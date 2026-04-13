@@ -7,9 +7,9 @@ PROJECT_ROOT = Path("/mnt/shared-storage-user/wenxiaoyu/wenxiaoyu/agentic-redtea
 
 loop = PlannerLoop(
     project_root=PROJECT_ROOT,
-    planner_overrides={"backend": "openai_compatible"},
-    evaluator_overrides={"guard_model": {"enabled": True}},
-    environment_overrides={"backend": "openai_compatible"},
+    planner_enabled=True,
+    guard_enabled=True,
+    environment_enabled=True,
 )
 
 # 先把预算调高，但前提是你已经修掉“重复 search 不 execute”的问题

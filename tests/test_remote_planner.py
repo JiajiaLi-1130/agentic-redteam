@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from core.planner import OpenAICompatiblePlanner
+from core.planner import LLMPlanner
 from core.registry import SkillRegistry
 from core.schemas import AgentState
 from core.skill_loader import SkillLoader
@@ -45,7 +45,7 @@ def test_remote_planner_accepts_valid_json(monkeypatch) -> None:
     """Remote planner should accept a valid structured response."""
     specs = SkillLoader(PROJECT_ROOT).discover()
     registry = SkillRegistry(specs)
-    planner = OpenAICompatiblePlanner(
+    planner = LLMPlanner(
         {
             "base_url": "http://example.invalid/v1",
             "model": "orm",
@@ -68,14 +68,14 @@ def test_remote_planner_accepts_valid_json(monkeypatch) -> None:
     assert len(plan) == 1
     assert plan[0].action_type == "select_search_paths"
     assert plan[0].args["search_pool"] == ["toy-encoding", "toy-persona"]
-    assert state.planner_flags["planner_backend"] == "openai_compatible"
+    assert state.planner_flags["planner_backend"] == "llm"
 
 
 def test_remote_planner_falls_back_on_invalid_json(monkeypatch) -> None:
     """Remote planner should fallback to rule-based planning on invalid output."""
     specs = SkillLoader(PROJECT_ROOT).discover()
     registry = SkillRegistry(specs)
-    planner = OpenAICompatiblePlanner(
+    planner = LLMPlanner(
         {
             "base_url": "http://example.invalid/v1",
             "model": "orm",
@@ -97,7 +97,7 @@ def test_remote_planner_keeps_pending_candidates_on_local_transition(monkeypatch
     """Remote planner should not override execute/evaluate transitions when work is queued."""
     specs = SkillLoader(PROJECT_ROOT).discover()
     registry = SkillRegistry(specs)
-    planner = OpenAICompatiblePlanner(
+    planner = LLMPlanner(
         {
             "base_url": "http://example.invalid/v1",
             "model": "orm",

@@ -254,7 +254,7 @@ class RuleBasedPlanner:
         return list(dict.fromkeys(last_skill_names))
 
 
-class OpenAICompatiblePlanner(RuleBasedPlanner):
+class LLMPlanner(RuleBasedPlanner):
     """Optional remote planner backed by an OpenAI-compatible chat endpoint."""
 
     REMOTE_STAGES = {"search", "refine", "escalation_meta", "escalation_return", "analysis"}
@@ -302,7 +302,7 @@ class OpenAICompatiblePlanner(RuleBasedPlanner):
                 fallback_plan=fallback_plan,
             )
             plan_steps = self._parse_remote_plan(raw_content, stage_options)
-            state.planner_flags["planner_backend"] = "openai_compatible"
+            state.planner_flags["planner_backend"] = "llm"
             state.planner_flags["planner_mode"] = "remote"
             return plan_steps
         except Exception as exc:
@@ -617,3 +617,7 @@ class OpenAICompatiblePlanner(RuleBasedPlanner):
         if start == -1 or end == -1 or end <= start:
             raise ValueError(f"Remote planner did not return a JSON object: {text}")
         return stripped[start : end + 1]
+
+
+# Backward-compatible import name for older scripts/tests.
+OpenAICompatiblePlanner = LLMPlanner

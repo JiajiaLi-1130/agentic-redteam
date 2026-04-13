@@ -10,8 +10,9 @@ budgets:
   max_environment_calls: 24
 
 planner:
-  backend: rule_based
-  openai_compatible:
+  backend: llm
+  llm:
+    provider: openai_compatible
     base_url: "http://s-20260330192936-zlwm5-decode.ailab-safethm.svc:23297/v1"
     model: "orm"
     api_key: "FAKE_API_KEY"
@@ -21,8 +22,9 @@ planner:
     fallback_to_rule_based: true
 
 meta_skills:
-  backend: openai_compatible
-  openai_compatible:
+  backend: llm
+  llm:
+    provider: openai_compatible
     enabled: true
     inherit_planner_endpoint: true
     base_url: ""
@@ -52,7 +54,7 @@ evaluator:
     fallback_to_heuristic: true
 
 environment:
-  backend: mock
+  backend: llm
   target_profile:
     model_name: mock-target-model
     mode: harmless-sandbox
@@ -60,7 +62,8 @@ environment:
       - default backend is local mock
       - remote target execution is optional and still gated to harmless toy prompts
       - no real policy bypass testing
-  openai_compatible:
+  llm:
+    provider: openai_compatible
     enabled: true
     base_url: "http://s-20260304150204-6bjfm-decode.ailab-safethm.svc:22103/v1"
     model: "orm"

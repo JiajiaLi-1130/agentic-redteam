@@ -37,7 +37,7 @@ def test_remote_environment_returns_normalized_response(monkeypatch) -> None:
 
     result = environment.execute("Explain rainbows in simple language.")
 
-    assert result["backend"] == "openai_compatible"
+    assert result["backend"] == "llm"
     assert result["model_name"] == "orm"
     assert result["style"] in {"helpful", "echo", "brief"}
 

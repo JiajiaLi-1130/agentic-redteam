@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from core.environment import MockEnvironment, OpenAICompatibleEnvironment
+from core.planner import LLMPlanner, RuleBasedPlanner
 from core.planner_loop import PlannerLoop
 
 
@@ -37,3 +39,34 @@ def test_end_to_end_basic_workflow_runs(tmp_path: Path) -> None:
     assert "matrix" in summary["memory_summary"]
     assert "path_stats" in summary["memory_summary"]
     assert "family_combination_stats" in summary["memory_summary"]
+
+
+def test_loop_enable_flags_switch_backends(tmp_path: Path) -> None:
+    """PlannerLoop should translate tri-state enable flags into backend choices."""
+    enabled_loop = PlannerLoop(
+        project_root=PROJECT_ROOT,
+        run_root=tmp_path / "enabled-runs",
+        planner_enabled=True,
+        guard_enabled=True,
+        environment_enabled=True,
+    )
+
+    assert enabled_loop.config["planner"]["backend"] == "llm"
+    assert enabled_loop.config["evaluator"]["guard_model"]["enabled"] is True
+    assert enabled_loop.config["environment"]["backend"] == "llm"
+    assert isinstance(enabled_loop.planner, LLMPlanner)
+    assert isinstance(enabled_loop.environment, OpenAICompatibleEnvironment)
+
+    disabled_loop = PlannerLoop(
+        project_root=PROJECT_ROOT,
+        run_root=tmp_path / "disabled-runs",
+        planner_enabled=False,
+        guard_enabled=False,
+        environment_enabled=False,
+    )
+
+    assert disabled_loop.config["planner"]["backend"] == "rule_based"
+    assert disabled_loop.config["evaluator"]["guard_model"]["enabled"] is False
+    assert disabled_loop.config["environment"]["backend"] == "mock"
+    assert type(disabled_loop.planner) is RuleBasedPlanner
+    assert isinstance(disabled_loop.environment, MockEnvironment)

@@ -105,7 +105,7 @@ The bundled config already includes an example planner endpoint:
 - model: `orm`
 - API key: `FAKE_API_KEY`
 
-To enable it, either set `planner.backend: openai_compatible` in `configs/config.yaml` or use the runtime enable flag:
+To enable it, either set `planner.backend: llm` in `configs/config.yaml` or use the runtime enable flag:
 
 ```bash
 python main.py \

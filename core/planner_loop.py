@@ -10,7 +10,7 @@ from core.environment import build_environment
 from core.evaluator import MockEvaluator
 from core.executor import SkillExecutor
 from core.memory_store import MemoryStore
-from core.planner import OpenAICompatiblePlanner, RuleBasedPlanner
+from core.planner import LLMPlanner, RuleBasedPlanner
 from core.registry import SkillRegistry
 from core.schemas import AgentState, MemoryEntry, SkillContext, SkillExecutionResult
 from core.selector import SearchSkillSelector
@@ -18,6 +18,9 @@ from core.skill_loader import SkillLoader
 from core.utils import append_jsonl, ensure_dir, make_run_id, read_yaml, utc_now_iso, write_json
 from core.versioning import SkillVersionManager
 from core.workflow import Workflow
+
+LLM_BACKEND = "llm"
+LEGACY_LLM_BACKEND = "openai_compatible"
 
 
 class PlannerLoop:
@@ -30,9 +33,18 @@ class PlannerLoop:
         planner_overrides: dict[str, Any] | None = None,
         evaluator_overrides: dict[str, Any] | None = None,
         environment_overrides: dict[str, Any] | None = None,
+        planner_enabled: bool | None = None,
+        guard_enabled: bool | None = None,
+        environment_enabled: bool | None = None,
     ) -> None:
         self.project_root = project_root
         self.config = read_yaml(project_root / "configs" / "config.yaml")
+        if planner_enabled is not None:
+            self._apply_planner_enabled(planner_enabled)
+        if guard_enabled is not None:
+            self._apply_guard_enabled(guard_enabled)
+        if environment_enabled is not None:
+            self._apply_environment_enabled(environment_enabled)
         if planner_overrides:
             self._apply_planner_overrides(planner_overrides)
         if evaluator_overrides:
@@ -145,26 +157,49 @@ class PlannerLoop:
         write_json(run_dir / "final_summary.json", final_summary)
         return final_summary
 
+    def _apply_planner_enabled(self, enabled: bool) -> None:
+        """Switch between the local rule planner and the configured LLM planner."""
+        self._apply_planner_overrides({"backend": LLM_BACKEND if enabled else "rule_based"})
+
+    def _apply_environment_enabled(self, enabled: bool) -> None:
+        """Switch between the local mock environment and the configured LLM environment."""
+        self._apply_environment_overrides({"backend": LLM_BACKEND if enabled else "mock"})
+
+    def _apply_guard_enabled(self, enabled: bool) -> None:
+        """Enable or disable the configured remote guard model."""
+        self._apply_evaluator_overrides({"guard_model": {"enabled": enabled}})
+
+    def _llm_config_from(self, config_section: dict[str, Any]) -> dict[str, Any]:
+        """Read the preferred LLM config key while accepting the legacy key."""
+        return dict(config_section.get("llm") or config_section.get(LEGACY_LLM_BACKEND, {}))
+
+    def _normalize_backend_name(self, backend: object) -> object:
+        """Normalize the old backend name to the shorter config name."""
+        return LLM_BACKEND if backend == LEGACY_LLM_BACKEND else backend
+
     def _apply_planner_overrides(self, overrides: dict[str, Any]) -> None:
         """Merge runtime planner overrides into the loaded config."""
         planner_config = dict(self.config.get("planner", {}))
-        openai_config = dict(planner_config.get("openai_compatible", {}))
+        llm_config = self._llm_config_from(planner_config)
 
         for key, value in overrides.items():
-            if key == "openai_compatible" and isinstance(value, dict):
-                openai_config.update({sub_key: sub_value for sub_key, sub_value in value.items() if sub_value is not None})
+            if key in {"llm", LEGACY_LLM_BACKEND} and isinstance(value, dict):
+                llm_config.update(
+                    {sub_key: sub_value for sub_key, sub_value in value.items() if sub_value is not None}
+                )
             elif value is not None:
-                planner_config[key] = value
+                planner_config[key] = self._normalize_backend_name(value) if key == "backend" else value
 
-        planner_config["openai_compatible"] = openai_config
+        planner_config["llm"] = llm_config
+        planner_config.pop(LEGACY_LLM_BACKEND, None)
         self.config["planner"] = planner_config
 
     def _build_planner(self) -> RuleBasedPlanner:
         """Instantiate the configured planner backend."""
         planner_config = dict(self.config.get("planner", {}))
-        backend = str(planner_config.get("backend", "rule_based"))
-        if backend == "openai_compatible":
-            return OpenAICompatiblePlanner(dict(planner_config.get("openai_compatible", {})))
+        backend = str(self._normalize_backend_name(planner_config.get("backend", "rule_based")))
+        if backend == LLM_BACKEND:
+            return LLMPlanner(self._llm_config_from(planner_config))
         return RuleBasedPlanner()
 
     def _apply_evaluator_overrides(self, overrides: dict[str, Any]) -> None:
@@ -186,17 +221,18 @@ class PlannerLoop:
     def _apply_environment_overrides(self, overrides: dict[str, Any]) -> None:
         """Merge runtime environment overrides into the loaded config."""
         environment_config = dict(self.config.get("environment", {}))
-        openai_config = dict(environment_config.get("openai_compatible", {}))
+        llm_config = self._llm_config_from(environment_config)
 
         for key, value in overrides.items():
-            if key == "openai_compatible" and isinstance(value, dict):
-                openai_config.update(
+            if key in {"llm", LEGACY_LLM_BACKEND} and isinstance(value, dict):
+                llm_config.update(
                     {sub_key: sub_value for sub_key, sub_value in value.items() if sub_value is not None}
                 )
             elif value is not None:
-                environment_config[key] = value
+                environment_config[key] = self._normalize_backend_name(value) if key == "backend" else value
 
-        environment_config["openai_compatible"] = openai_config
+        environment_config["llm"] = llm_config
+        environment_config.pop(LEGACY_LLM_BACKEND, None)
         self.config["environment"] = environment_config
 
     def _load_workflows(self) -> dict[str, Workflow]:
@@ -890,12 +926,12 @@ class PlannerLoop:
 
     def _resolve_meta_skill_backend_config(self) -> dict[str, Any]:
         """Resolve the model backend config used by model-backed meta-skills."""
-        meta_config = dict(self.config.get("meta_skills", {}).get("openai_compatible", {}))
+        meta_config = self._llm_config_from(dict(self.config.get("meta_skills", {})))
         if not meta_config:
             return {"enabled": False}
 
         if bool(meta_config.get("inherit_planner_endpoint", False)):
-            planner_config = dict(self.config.get("planner", {}).get("openai_compatible", {}))
+            planner_config = self._llm_config_from(dict(self.config.get("planner", {})))
             for key in ("base_url", "model", "api_key"):
                 if not meta_config.get(key):
                     meta_config[key] = planner_config.get(key, "")
@@ -903,15 +939,17 @@ class PlannerLoop:
 
     def _executor_timeout_seconds(self) -> int:
         """Choose a subprocess timeout that safely exceeds nested backend calls."""
-        planner_timeout = int(self.config.get("planner", {}).get("openai_compatible", {}).get("timeout_seconds", 8))
+        planner_timeout = int(
+            self._llm_config_from(dict(self.config.get("planner", {}))).get("timeout_seconds", 8)
+        )
         meta_timeout = int(
-            self.config.get("meta_skills", {}).get("openai_compatible", {}).get("timeout_seconds", 12)
+            self._llm_config_from(dict(self.config.get("meta_skills", {}))).get("timeout_seconds", 12)
         )
         evaluator_timeout = int(
             self.config.get("evaluator", {}).get("guard_model", {}).get("timeout_seconds", 8)
         )
         environment_timeout = int(
-            self.config.get("environment", {}).get("openai_compatible", {}).get("timeout_seconds", 12)
+            self._llm_config_from(dict(self.config.get("environment", {}))).get("timeout_seconds", 12)
         )
         return max(30, planner_timeout, meta_timeout, evaluator_timeout, environment_timeout) + 5
 

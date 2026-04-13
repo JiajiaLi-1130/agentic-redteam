@@ -1,4 +1,4 @@
-"""Environment adapters for mock or OpenAI-compatible target models."""
+"""Environment adapters for mock or LLM target models."""
 
 from __future__ import annotations
 
@@ -143,12 +143,12 @@ class OpenAICompatibleEnvironment:
 
         try:
             response_text = self._call_remote_environment(candidate_text)
-            self.last_backend = "openai_compatible"
+            self.last_backend = "llm"
             return {
                 "response_text": response_text,
                 "style": self._classify_style(candidate_text, response_text),
                 "candidate_text": candidate_text,
-                "backend": "openai_compatible",
+                "backend": "llm",
                 "model_name": self.model,
             }
         except Exception as exc:
@@ -269,8 +269,11 @@ def build_environment(
     config = dict(config or {})
     backend = str(config.get("backend", "mock"))
     if backend == "openai_compatible":
+        backend = "llm"
+    if backend == "llm":
+        llm_config = dict(config.get("llm") or config.get("openai_compatible", {}))
         return OpenAICompatibleEnvironment(
             target_profile=target_profile,
-            config=dict(config.get("openai_compatible", {})),
+            config=llm_config,
         )
     return MockEnvironment(target_profile=target_profile)
