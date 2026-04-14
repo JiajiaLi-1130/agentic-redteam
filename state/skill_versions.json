@@ -1,0 +1,258 @@
+{
+  "skills": {
+    "evaluation-mock": {
+      "active_version": "0.2.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "memory-summarize": {
+      "active_version": "0.1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "retrieval-analysis": {
+      "active_version": "0.1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "toy-encoding": {
+      "active_version": "0.1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 42,
+        "successes": 14,
+        "asr": 0.3333333333333333,
+        "avg_usefulness_score": 0.6811904761904761,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.6811904761904761
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "toy-paraphrase": {
+      "active_version": "0.1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 174,
+        "successes": 174,
+        "asr": 1.0,
+        "avg_usefulness_score": 0.85,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.85
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "toy-persona": {
+      "active_version": "0.1.1",
+      "previous_version": "0.1.0",
+      "active_draft_artifact": {
+        "draft_skill": {
+          "name": "toy-persona-refined-draft",
+          "base_skill": "toy-persona",
+          "description": "Draft refinement of toy-persona with slightly richer harmless variation.",
+          "suggestions": [
+            "Increase candidate variety by changing output templates.",
+            "Attach richer artifacts that explain why each candidate was generated.",
+            "Keep the current direction but add more diverse harmless phrasing."
+          ]
+        }
+      },
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 219,
+        "successes": 219,
+        "asr": 1.0,
+        "avg_usefulness_score": 0.8500000000000005,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.8500000000000005
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "combine-skills": {
+      "active_version": "0.1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "discover-skill": {
+      "active_version": "0.1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "refine-skill": {
+      "active_version": "0.1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    }
+  }
+}

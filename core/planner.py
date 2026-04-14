@@ -443,15 +443,7 @@ class LLMPlanner(RuleBasedPlanner):
             "or candidate text. Return strict JSON only."
         )
 
-        skill_catalog = {
-            spec.name: {
-                "category": spec.category,
-                "description": spec.description,
-                "tags": spec.tags,
-                "stage": spec.stage,
-            }
-            for spec in registry.all()
-        }
+        skill_catalog = self._build_skill_catalog(registry, stage_options)
         request_payload = {
             "instructions": {
                 "format": {
@@ -533,6 +525,23 @@ class LLMPlanner(RuleBasedPlanner):
             text_parts = [str(item.get("text", "")) for item in content if isinstance(item, dict)]
             return "\n".join(text_parts).strip()
         return str(content).strip()
+
+    def _build_skill_catalog(
+        self,
+        registry: SkillRegistry,
+        stage_options: dict[str, Any],
+    ) -> dict[str, dict[str, Any]]:
+        """Build a compact, stage-scoped skill catalog for the remote planner."""
+        candidate_names: set[str] = set(stage_options.get("allowed_search_pool", []))
+        allowed_targets = dict(stage_options.get("allowed_targets", {}))
+        for targets in allowed_targets.values():
+            for target in targets or []:
+                if target is not None:
+                    candidate_names.add(str(target))
+
+        return registry.planner_cards(
+            names=sorted(candidate_names) if candidate_names else None,
+        )
 
     def _parse_remote_plan(
         self,

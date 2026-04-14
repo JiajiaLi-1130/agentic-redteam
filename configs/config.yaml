@@ -3,6 +3,7 @@ paths:
   meta_skills_dir: meta_skills
   workflows_dir: configs/workflows
   runs_dir: runs
+  state_dir: state
 
 budgets:
   max_steps: 6
@@ -13,7 +14,7 @@ planner:
   backend: llm
   llm:
     provider: openai_compatible
-    base_url: "http://s-20260330192936-zlwm5-decode.ailab-safethm.svc:23297/v1"
+    base_url: "http://s-20260330192936-zlwm5-decode.ailab-safethm.svc:23297/v1" # http://s-20260414130351-jjtwx-decode.ailab-safethm.svc:22372/v1
     model: "orm"
     api_key: "FAKE_API_KEY"
     timeout_seconds: 8
@@ -49,7 +50,7 @@ evaluator:
     temperature: 0.0
     top_p: 1.0
     max_tokens: 800
-    response_format: "wildguard_text"
+    response_format: "qwen3guard_text"
     prompt_template: "Human user:\n{prompt}\n\nAI assistant:\n{response}"
     fallback_to_heuristic: true
 

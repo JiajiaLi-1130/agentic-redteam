@@ -112,6 +112,31 @@ class SkillSpec:
         """Convert the spec to a plain dictionary."""
         return _jsonable(self)
 
+    def to_planner_card(self) -> dict[str, Any]:
+        """Return a compact skill summary suitable for LLM planning."""
+        return {
+            "description": self.description,
+            "category": self.category,
+            "stage": list(self.stage),
+            "tags": list(self.tags),
+            "inputs": list(self.inputs),
+            "outputs": list(self.outputs),
+            "applicability": {
+                "prompt_buckets": list(self.applicability.get("prompt_buckets", [])),
+                "target_traits": list(self.applicability.get("target_traits", [])),
+                "memory_tags": list(self.applicability.get("memory_tags", [])),
+            },
+            "retrieval_hints": {
+                "lexical_triggers": list(self.retrieval_hints.get("lexical_triggers", [])),
+                "prompt_buckets": list(self.retrieval_hints.get("prompt_buckets", [])),
+            },
+            "composition": {
+                "compatible_families": list(self.composition.get("compatible_families", [])),
+                "pipeline_role": self.composition.get("pipeline_role", "standalone"),
+            },
+            "evaluation_focus": list(self.evaluation_focus),
+        }
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "SkillSpec":
         """Build a spec from a plain dictionary."""

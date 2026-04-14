@@ -131,9 +131,12 @@ python main.py \
 
 Each skill directory contains:
 
-- `SKILL.md`: human-readable documentation
-- `skill.json`: machine-readable spec
+- `SKILL.md`: human-readable documentation with minimal YAML frontmatter and a `Runtime Metadata` block
 - `scripts/run.py`: executable entrypoint
+
+The runtime builds its skill registry from `SKILL.md` frontmatter plus the markdown-body `Runtime Metadata` YAML block. The LLM planner receives only compact, stage-scoped skill cards; full `SKILL.md` content is read lazily after a skill is selected.
+
+Skill versions are maintained centrally in `state/skill_versions.json`. Each skill keeps only an active version and an optional previous version for one-step rollback; runtime events are appended to `state/version_events.jsonl` and per-run traces.
 
 All `scripts/run.py` files must:
 
@@ -145,23 +148,24 @@ All `scripts/run.py` files must:
 ## Adding A Skill
 
 1. Create a new directory under `skills/`.
-2. Add `SKILL.md`, `skill.json`, and `scripts/run.py`.
-3. Make `skill.json` conform to `core.schemas.SkillSpec`.
-4. Make `scripts/run.py` read stdin JSON and emit stdout JSON.
-5. Place any human-readable guidance in `references/`.
+2. Add `SKILL.md` with minimal frontmatter: `name`, `description`, and `metadata.version`.
+3. Add `scripts/run.py`.
+4. Add a `## Runtime Metadata` YAML block containing the execution fields required by `core.schemas.SkillSpec`.
+5. Make `scripts/run.py` read stdin JSON and emit stdout JSON.
+6. Place any human-readable guidance in `references/`.
 
 ## Adding A Meta-Skill
 
 1. Create a new directory under `meta_skills/`.
-2. Mark its `category` as `meta` in `skill.json`.
+2. Mark its `category` as `meta` in the `Runtime Metadata` block.
 3. Keep it harmless and focused on toy skill drafts or patch suggestions.
 4. Do not let it overwrite existing skills directly.
 
 ## Current Limitations
 
-- The planner is rule-based and not LLM-driven.
-- The environment is a mock target model.
-- The evaluator is a toy heuristic.
+- The planner can use an LLM backend but falls back to deterministic rule-based transitions where needed.
+- The environment can use an LLM backend but keeps local safety gates and mock fallback behavior.
+- The evaluator is a toy heuristic with an optional guard model signal.
 - Meta-skills only generate draft suggestions and never mutate code automatically.
 - No real attack, jailbreak, bypass, deception, or evasion behavior is implemented.
 

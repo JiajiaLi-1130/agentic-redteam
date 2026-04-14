@@ -30,6 +30,7 @@ class PlannerLoop:
         self,
         project_root: Path,
         run_root: Path | None = None,
+        state_root: Path | None = None,
         planner_overrides: dict[str, Any] | None = None,
         evaluator_overrides: dict[str, Any] | None = None,
         environment_overrides: dict[str, Any] | None = None,
@@ -61,8 +62,11 @@ class PlannerLoop:
             ],
         )
         self.registry = SkillRegistry(loader.discover())
-        self.version_manager = SkillVersionManager(self.registry)
-        self.version_manager.ensure_manifests()
+        self.version_manager = SkillVersionManager(
+            self.registry,
+            state_root=state_root or project_root / self.config["paths"].get("state_dir", "state"),
+        )
+        self.version_manager.ensure_state()
         self.version_manager.sync_registry_versions()
         self.executor = SkillExecutor(
             project_root=project_root,
@@ -881,6 +885,7 @@ class PlannerLoop:
             "recent_memory": [entry.to_dict() for entry in memory.recent(self.recent_memory_window)],
             "artifacts": state.artifacts,
             "requested_skill": skill_name,
+            "requested_skill_doc": self._read_skill_doc(skill_name),
             "active_skill_version": active_skill_version,
             "active_skill_draft": self.version_manager.active_draft_artifact(skill_name),
             "meta_skill_backend": self._resolve_meta_skill_backend_config(),
@@ -895,11 +900,17 @@ class PlannerLoop:
         }
 
         if "skill_name" in plan_args and plan_args["skill_name"] in self.registry.names():
-            extra["target_skill_spec"] = self.registry.get(plan_args["skill_name"]).to_dict()
+            target_name = str(plan_args["skill_name"])
+            extra["target_skill_spec"] = self.registry.get(target_name).to_dict()
+            extra["target_skill_doc"] = self._read_skill_doc(target_name)
 
         if "skill_names" in plan_args:
             names = [name for name in plan_args["skill_names"] if name in self.registry.names()]
             extra["target_skill_specs"] = [self.registry.get(name).to_dict() for name in names]
+            extra["target_skill_docs"] = {
+                name: self._read_skill_doc(name)
+                for name in names
+            }
 
         return SkillContext(
             run_id=state.run_id,
@@ -913,6 +924,11 @@ class PlannerLoop:
             evaluator_feedback=dict(state.last_eval),
             extra=extra,
         )
+
+    def _read_skill_doc(self, skill_name: str) -> str:
+        """Read the selected skill's full SKILL.md only when it is needed."""
+        spec = self.registry.get(skill_name)
+        return (Path(spec.root_dir) / "SKILL.md").read_text(encoding="utf-8")
 
     def _log_state(self, run_dir: Path, state: AgentState) -> None:
         """Append one state snapshot to the run trace."""

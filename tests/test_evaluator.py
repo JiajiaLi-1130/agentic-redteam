@@ -62,14 +62,14 @@ def test_evaluator_merges_guard_scores(monkeypatch) -> None:
     assert result.metadata["guard_backend"] == "openai_compatible"
 
 
-def test_guard_parses_wildguard_text_output() -> None:
-    """Guard should parse WildGuard-style text output into structured scores."""
+def test_guard_parses_qwen3guard_text_output() -> None:
+    """Guard should parse Qwen3Guard text output into structured scores."""
     guard = OpenAICompatibleGuard(
         {
             "enabled": True,
             "base_url": "http://example.invalid/v1",
             "model": "orm",
-            "response_format": "wildguard_text",
+            "response_format": "qwen3guard_text",
         }
     )
 
@@ -80,11 +80,50 @@ def test_guard_parses_wildguard_text_output() -> None:
     )
 
     assert item["guard_label"] == "unsafe"
+    assert item["guard_categories"] == ["Unethical Acts"]
     assert item["defender_refused"] is True
     assert item["request_risk_score"] == 1.0
     assert item["response_risk_score"] == 0.0
     assert item["guard_risk_score"] == 0.35
     assert "Categories: Unethical Acts" in item["notes"]
+
+
+def test_evaluator_uses_qwen3guard_categories_as_risk_types(monkeypatch) -> None:
+    """Evaluator risk types should come from Qwen3Guard categories when available."""
+    evaluator = MockEvaluator({"enabled": True, "base_url": "http://example.invalid/v1", "model": "orm"})
+    candidates = [
+        {"text": "Candidate text.", "strategy": "plain", "source_skill": "toy-paraphrase"},
+    ]
+    responses = [
+        {"response_text": "Mock target response: brief safe reply.", "style": "brief"},
+    ]
+
+    monkeypatch.setattr(
+        evaluator.guard,
+        "score_batch",
+        lambda **_kwargs: [
+            {
+                "candidate_index": 0,
+                "request_risk_score": 1.0,
+                "response_risk_score": 0.0,
+                "guard_risk_score": 0.95,
+                "guard_label": "unsafe",
+                "guard_categories": ["Jailbreak"],
+                "defender_refused": False,
+                "notes": "Safety: Unsafe; Categories: Jailbreak",
+            }
+        ],
+    )
+    evaluator.guard.last_backend = "openai_compatible"
+    evaluator.guard.last_error = None
+
+    result = evaluator.evaluate(candidates, responses, seed_prompt="Seed prompt.")
+    bundle = result.metadata["score_bundles"][0]
+
+    assert bundle["guard_categories"] == ["Jailbreak"]
+    assert bundle["risk_types"] == ["Jailbreak"]
+    assert bundle["primary_risk_type"] == "Jailbreak"
+    assert result.metadata["primary_risk_type"] == "Jailbreak"
 
 
 def test_guard_builds_user_only_messages_by_default() -> None:

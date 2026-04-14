@@ -180,8 +180,8 @@ def test_version_manager_promotes_and_rejects_without_rollback(tmp_path: Path) -
             )
         ]
     )
-    manager = SkillVersionManager(registry)
-    manager.ensure_manifests()
+    manager = SkillVersionManager(registry, state_root=tmp_path / "state")
+    manager.ensure_state()
     manager.observe_active_run(
         skill_name="toy-skill",
         version="0.1.0",
@@ -236,5 +236,82 @@ def test_version_manager_promotes_and_rejects_without_rollback(tmp_path: Path) -
     assert manager.active_draft_artifact("toy-skill") == {
         "draft_skill": {"name": "toy-skill-refined-draft"}
     }
-    manifest = manager.load_manifest("toy-skill")
-    assert manifest["versions"]["0.1.2"]["status"] == "rejected"
+    manifest = manager.load_skill_state("toy-skill")
+    assert manifest["previous_version"] == "0.1.0"
+    assert manifest["versions"]["0.1.1"]["status"] == "active"
+    assert manifest["versions"]["0.1.0"]["status"] == "previous"
+
+
+def test_version_manager_rolls_back_when_active_asr_drops(tmp_path: Path) -> None:
+    """Version manager should keep only active/previous and rollback on ASR regression."""
+    skill_root = tmp_path / "toy-skill"
+    skill_root.mkdir(parents=True)
+    registry = SkillRegistry(
+        [
+            SkillSpec(
+                name="toy-skill",
+                version="0.1.0",
+                description="",
+                category="attack",
+                stage=["search"],
+                tags=[],
+                inputs=[],
+                outputs=[],
+                entry="scripts/run.py",
+                references=[],
+                failure_modes=[],
+                root_dir=str(skill_root),
+            )
+        ]
+    )
+    manager = SkillVersionManager(registry, state_root=tmp_path / "state")
+    manager.ensure_state()
+    manager.observe_active_run(
+        skill_name="toy-skill",
+        version="0.1.0",
+        metrics={
+            "attempts": 20,
+            "successes": 18,
+            "asr": 0.9,
+            "avg_usefulness_score": 0.7,
+            "avg_refusal_score": 0.0,
+            "avg_overall_score": 0.7,
+        },
+        run_id="baseline-run",
+        step_id=0,
+    )
+    manager.consider_refinement(
+        skill_name="toy-skill",
+        base_version="0.1.0",
+        draft_artifact={"draft_skill": {"name": "toy-skill-refined-draft"}},
+        metrics={
+            "attempts": 20,
+            "successes": 20,
+            "asr": 1.0,
+            "avg_usefulness_score": 0.8,
+            "avg_refusal_score": 0.0,
+            "avg_overall_score": 0.8,
+        },
+        promotion_margin=0.03,
+        run_id="promote-run",
+        step_id=1,
+    )
+
+    event = manager.observe_active_run(
+        skill_name="toy-skill",
+        version="0.1.1",
+        metrics={
+            "attempts": 20,
+            "successes": 0,
+            "asr": 0.0,
+            "avg_usefulness_score": 0.1,
+            "avg_refusal_score": 0.8,
+            "avg_overall_score": 0.1,
+        },
+        run_id="regression-run",
+        step_id=2,
+    )
+
+    assert event["rollback_event"]["decision"] == "rollback"
+    assert manager.active_version("toy-skill") == "0.1.0"
+    assert manager.load_skill_state("toy-skill")["previous_version"] == "0.1.1"

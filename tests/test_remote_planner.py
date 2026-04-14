@@ -117,3 +117,23 @@ def test_remote_planner_keeps_pending_candidates_on_local_transition(monkeypatch
     assert len(plan) == 1
     assert plan[0].action_type == "execute_candidates"
     assert state.planner_flags["planner_mode"] == "deterministic_transition"
+
+
+def test_remote_planner_builds_stage_scoped_skill_cards() -> None:
+    """Remote planner should receive compact cards only for currently allowed skills."""
+    specs = SkillLoader(PROJECT_ROOT).discover()
+    registry = SkillRegistry(specs)
+    planner = LLMPlanner()
+
+    catalog = planner._build_skill_catalog(
+        registry,
+        {
+            "allowed_search_pool": ["toy-encoding", "toy-persona"],
+            "allowed_targets": {"select_search_paths": [None]},
+        },
+    )
+
+    assert set(catalog) == {"toy-encoding", "toy-persona"}
+    assert "entry" not in catalog["toy-encoding"]
+    assert "description" in catalog["toy-encoding"]
+    assert catalog["toy-encoding"]["applicability"]["prompt_buckets"]

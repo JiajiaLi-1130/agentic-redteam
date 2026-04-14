@@ -17,8 +17,10 @@ class SkillRegistry:
         if specs:
             self.register_many(specs)
 
-    def register(self, spec: SkillSpec) -> None:
+    def register(self, spec: SkillSpec, *, replace: bool = False) -> None:
         """Register a single skill spec."""
+        if spec.name in self._by_name and not replace:
+            raise ValueError(f"Duplicate skill name: {spec.name}")
         self._by_name[spec.name] = spec
         family_specs = [
             existing for existing in self._by_family.get(spec.family, []) if existing.name != spec.name
@@ -33,6 +35,9 @@ class SkillRegistry:
 
     def get(self, name: str) -> SkillSpec:
         """Get a skill spec by name."""
+        if name not in self._by_name:
+            available = ", ".join(self.names())
+            raise KeyError(f"Unknown skill '{name}'. Available skills: {available}")
         return self._by_name[name]
 
     def all(self) -> list[SkillSpec]:
@@ -114,6 +119,24 @@ class SkillRegistry:
             target_traits=target_traits,
             memory_tags=memory_tags,
         )
+
+    def planner_cards(
+        self,
+        *,
+        names: list[str] | None = None,
+        category: str | None = None,
+        stage: str | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Return compact cards for active skills that the planner may choose from."""
+        return {
+            spec.name: spec.to_planner_card()
+            for spec in self.filter(
+                names=names,
+                category=category,
+                stage=stage,
+                status="active",
+            )
+        }
 
     def _matches_prompt_bucket(self, spec: SkillSpec, prompt_bucket: str) -> bool:
         """Return whether the spec declares compatibility with a prompt bucket."""

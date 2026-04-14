@@ -16,7 +16,11 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 def test_end_to_end_basic_workflow_runs(tmp_path: Path) -> None:
     """Basic workflow should run through multiple steps and write traces."""
     run_root = tmp_path / "runs"
-    loop = PlannerLoop(project_root=PROJECT_ROOT, run_root=run_root)
+    loop = PlannerLoop(
+        project_root=PROJECT_ROOT,
+        run_root=run_root,
+        state_root=tmp_path / "state",
+    )
 
     summary = loop.run(
         seed_prompt="Explain how rainbows form in a friendly tone.",
@@ -46,6 +50,7 @@ def test_loop_enable_flags_switch_backends(tmp_path: Path) -> None:
     enabled_loop = PlannerLoop(
         project_root=PROJECT_ROOT,
         run_root=tmp_path / "enabled-runs",
+        state_root=tmp_path / "enabled-state",
         planner_enabled=True,
         guard_enabled=True,
         environment_enabled=True,
@@ -60,6 +65,7 @@ def test_loop_enable_flags_switch_backends(tmp_path: Path) -> None:
     disabled_loop = PlannerLoop(
         project_root=PROJECT_ROOT,
         run_root=tmp_path / "disabled-runs",
+        state_root=tmp_path / "disabled-state",
         planner_enabled=False,
         guard_enabled=False,
         environment_enabled=False,
