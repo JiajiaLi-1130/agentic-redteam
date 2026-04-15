@@ -50,7 +50,6 @@ evaluator:
     temperature: 0.0
     top_p: 1.0
     max_tokens: 800
-    response_format: "qwen3guard_text"
     fallback_to_heuristic: true
 
 environment:

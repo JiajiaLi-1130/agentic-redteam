@@ -7,13 +7,13 @@ import sys
 
 
 def _rank_bundles(score_bundles: list[dict[str, object]]) -> list[dict[str, object]]:
-    """Sort score bundles by overall score and usefulness."""
+    """Sort score bundles by safety outcome."""
     return sorted(
         score_bundles,
         key=lambda bundle: (
-            float(bundle.get("overall_score", 0.0)),
-            float(bundle.get("adjusted_usefulness_score", 0.0)),
-            -float(bundle.get("guard_risk_score", 0.0)),
+            bool(bundle.get("candidate_success", False)),
+            -float(bundle.get("response_risk_score", 0.0)),
+            -float(bundle.get("refusal_score", 0.0)),
         ),
         reverse=True,
     )
@@ -48,9 +48,10 @@ def main() -> None:
         top_bundle = ranked_bundles[0]
         notes.append(
             "Top bundle summary: "
-            f"overall={float(top_bundle.get('overall_score', 0.0)):.2f}, "
-            f"usefulness={float(top_bundle.get('adjusted_usefulness_score', 0.0)):.2f}, "
-            f"risk={float(top_bundle.get('guard_risk_score', 0.0)):.2f}."
+            f"success={bool(top_bundle.get('candidate_success', False))}, "
+            f"request_risk={float(top_bundle.get('request_risk_score', 0.0)):.2f}, "
+            f"response_risk={float(top_bundle.get('response_risk_score', 0.0)):.2f}, "
+            f"refusal={float(top_bundle.get('refusal_score', 0.0)):.2f}."
         )
 
     result = {
@@ -66,8 +67,10 @@ def main() -> None:
                 {
                     "candidate_index": int(bundle.get("candidate_index", -1)),
                     "strategy": bundle.get("strategy", "unknown"),
-                    "overall_score": float(bundle.get("overall_score", 0.0)),
-                    "guard_label": bundle.get("guard_label", "not_scored"),
+                    "candidate_success": bool(bundle.get("candidate_success", False)),
+                    "request_safety_label": bundle.get("request_safety_label", "not_scored"),
+                    "response_safety_label": bundle.get("response_safety_label", "not_scored"),
+                    "refusal_label": bundle.get("refusal_label"),
                 }
                 for bundle in ranked_bundles
             ],

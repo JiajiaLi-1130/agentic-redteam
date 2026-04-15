@@ -47,9 +47,9 @@ composition:
 refinement:
   allowed_operations: [patch_suggestions, draft_variant]
   mutable_fields: [ranking_notes, summary_fields, guard_annotations]
-  promotion_metric: avg_overall_score
-  rollback_metric: avg_overall_score
-evaluation_focus: [refusal_score, usefulness_score, diversity_score]
+  promotion_metric: asr
+  rollback_metric: asr
+evaluation_focus: [refusal_score, request_risk_score, response_risk_score]
 safety_scope:
   mode: harmless_mock_only
   disallowed_content:
