@@ -51,7 +51,6 @@ evaluator:
     top_p: 1.0
     max_tokens: 800
     response_format: "qwen3guard_text"
-    prompt_template: "Human user:\n{prompt}\n\nAI assistant:\n{response}"
     fallback_to_heuristic: true
 
 environment:
@@ -71,7 +70,7 @@ environment:
     api_key: "FAKE_API_KEY"
     transport: "openai_sdk"
     include_system_prompt: false
-    send_sampling_params: false
+    send_sampling_params: true
     timeout_seconds: 12
     temperature: 0.0
     top_p: 1.0
