@@ -1,8 +1,13 @@
 ---
 name: combine-skills
-description: Draft a new skill concept by combining existing configured skills.
+description: Use during refinement or escalation to draft a new skill concept that
+  combines the framing, transformation, or behavior of multiple existing skills.
 metadata:
-  version: "1.0"
+  version: '1.0'
+  category: meta
+  stage:
+  - refine
+  - escalation
 ---
 
 # combine-skills

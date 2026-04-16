@@ -9,7 +9,7 @@ from core.schemas import SkillSpec
 
 
 class SkillRegistry:
-    """Store and filter skill specs by name, category, stage, or tag."""
+    """Store and filter skill specs by name, family, category, or stage."""
 
     def __init__(self, specs: Iterable[SkillSpec] | None = None) -> None:
         self._by_name: dict[str, SkillSpec] = {}
@@ -63,14 +63,13 @@ class SkillRegistry:
         family: str | None = None,
         category: str | None = None,
         stage: str | None = None,
-        tags: list[str] | None = None,
         status: str | None = None,
         prompt_bucket: str | None = None,
         target_traits: list[str] | None = None,
         memory_tags: list[str] | None = None,
         evaluation_focus: list[str] | None = None,
     ) -> list[SkillSpec]:
-        """Filter skills by family, applicability, category, stage, and tags."""
+        """Filter skills by family, category, and stage."""
         results = self.all()
         if names is not None:
             allowed = set(names)
@@ -81,22 +80,10 @@ class SkillRegistry:
             results = [spec for spec in results if spec.category == category]
         if stage is not None:
             results = [spec for spec in results if stage in spec.stage]
-        if tags:
-            wanted = set(tags)
-            results = [spec for spec in results if wanted.issubset(set(spec.tags))]
         if status is not None:
             results = [spec for spec in results if spec.status == status]
         if prompt_bucket is not None:
             results = [spec for spec in results if self._matches_prompt_bucket(spec, prompt_bucket)]
-        if target_traits:
-            wanted_traits = set(target_traits)
-            results = [spec for spec in results if self._matches_traits(spec.applicability.get("target_traits", []), wanted_traits)]
-        if memory_tags:
-            wanted_tags = set(memory_tags)
-            results = [spec for spec in results if self._matches_traits(spec.applicability.get("memory_tags", []), wanted_tags)]
-        if evaluation_focus:
-            wanted_focus = set(evaluation_focus)
-            results = [spec for spec in results if wanted_focus.intersection(set(spec.evaluation_focus))]
         return results
 
     def filter_applicable(
@@ -139,11 +126,9 @@ class SkillRegistry:
         }
 
     def _matches_prompt_bucket(self, spec: SkillSpec, prompt_bucket: str) -> bool:
-        """Return whether the spec declares compatibility with a prompt bucket."""
-        buckets = list(spec.applicability.get("prompt_buckets", []))
-        if not buckets:
-            return True
-        return prompt_bucket in buckets or "general" in buckets
+        """Prompt bucket filtering is intentionally permissive in the minimal schema."""
+        _ = (spec, prompt_bucket)
+        return True
 
     def _matches_traits(self, declared_traits: list[Any], wanted_traits: set[str]) -> bool:
         """Match a declared list of traits against a wanted trait set."""

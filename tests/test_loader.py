@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from textwrap import dedent
 from pathlib import Path
 
 from core.registry import SkillRegistry
@@ -38,47 +39,78 @@ def test_loader_discovers_all_skills() -> None:
     assert not list(PROJECT_ROOT.glob("meta_skills/*/skill.json"))
 
 
-def test_loader_populates_family_schema_fields() -> None:
-    """Loaded specs should expose richer family-schema metadata."""
+def test_loader_populates_minimal_runtime_fields() -> None:
+    """Loaded specs should expose the reduced runtime fields."""
     loader = SkillLoader(PROJECT_ROOT)
     registry = SkillRegistry(loader.discover())
 
     rewrite = registry.get("rewrite-emoji")
     language = registry.get("rewrite-language")
-    refine = registry.get("refine-skill")
-
     assert rewrite.family == "rewrite-emoji"
     assert rewrite.status == "active"
-    assert "rewrite_request" in rewrite.applicability["prompt_buckets"]
-    assert "success" in rewrite.evaluation_focus
-    assert rewrite.composition["pipeline_role"] == "seed_transform"
-    assert language.parameters_schema["properties"]["language_mix"]["default"] == "medium"
-    assert language.inputs == ["SkillContext JSON on stdin"]
-    assert language.outputs == ["SkillExecutionResult JSON on stdout"]
-    assert refine.composition["pipeline_role"] == "meta_refiner"
-    assert set(refine.composition["compatible_families"]) == REWRITE_SKILLS
+    assert "emoji" in rewrite.description.lower()
+    assert "multilingual" in language.description.lower()
 
 
-def test_loader_uses_minimal_frontmatter_plus_directory_conventions() -> None:
-    """Executable metadata should come from package conventions, not markdown metadata."""
+def test_loader_uses_frontmatter_as_machine_ground_truth() -> None:
+    """Executable metadata should come from explicit frontmatter, not loader inference."""
     skill_doc = PROJECT_ROOT / "skills" / "rewrite-emoji" / "SKILL.md"
     frontmatter = read_markdown_frontmatter(skill_doc)
     skill_text = skill_doc.read_text(encoding="utf-8")
 
     assert set(frontmatter) == {"name", "description", "metadata"}
     assert frontmatter["metadata"]["version"] == "0.1.0"
+    assert frontmatter["metadata"]["category"] == "attack"
+    assert frontmatter["metadata"]["stage"] == ["search"]
+    assert set(frontmatter["metadata"]) == {"version", "category", "stage"}
     assert "## Runtime Metadata" not in skill_text
 
     spec = next(spec for spec in SkillLoader(PROJECT_ROOT).discover() if spec.name == "rewrite-emoji")
 
     assert spec.name == "rewrite-emoji"
+    assert spec.category == frontmatter["metadata"]["category"]
+    assert spec.stage == frontmatter["metadata"]["stage"]
     assert spec.entry == "scripts/run.py"
-    assert spec.inputs == ["SkillContext JSON on stdin"]
-    assert spec.outputs == ["SkillExecutionResult JSON on stdout"]
+    assert "rewrite" in spec.description.lower()
+
+
+def test_loader_reads_custom_frontmatter_without_name_based_inference(tmp_path: Path) -> None:
+    """A new skill should be loadable without any loader-side special casing."""
+    project_root = tmp_path
+    skill_dir = project_root / "skills" / "custom-weave"
+    (skill_dir / "scripts").mkdir(parents=True)
+    (skill_dir / "scripts" / "run.py").write_text("print('{}')\n", encoding="utf-8")
+    (skill_dir / "SKILL.md").write_text(
+        dedent(
+            """\
+            ---
+            name: custom-weave
+            description: Loader should parse exactly what the skill declares and use it for bespoke weave-style prompts.
+            metadata:
+              version: "9.1"
+              category: prototype
+              stage:
+              - exploration
+            ---
+
+            # custom-weave
+            """
+        ),
+        encoding="utf-8",
+    )
+
+    specs = SkillLoader(project_root, [project_root / "skills"]).discover()
+
+    assert len(specs) == 1
+    spec = specs[0]
+    assert spec.name == "custom-weave"
+    assert spec.category == "prototype"
+    assert spec.stage == ["exploration"]
+    assert "weave-style prompts" in spec.description
 
 
 def test_registry_filters_applicable_skills_by_prompt_bucket() -> None:
-    """Registry should use applicability metadata for prompt-bucket filtering."""
+    """Registry should use planner hints for prompt-bucket filtering."""
     loader = SkillLoader(PROJECT_ROOT)
     registry = SkillRegistry(loader.discover())
 
@@ -109,3 +141,4 @@ def test_registry_rejects_duplicates_and_builds_planner_cards() -> None:
     assert set(cards) == {"rewrite-emoji", "memory-summarize"}
     assert "entry" not in cards["rewrite-emoji"]
     assert cards["rewrite-emoji"]["category"] == "attack"
+    assert "description" in cards["rewrite-emoji"]

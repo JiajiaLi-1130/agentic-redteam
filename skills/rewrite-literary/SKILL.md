@@ -1,8 +1,12 @@
 ---
 name: rewrite-literary
-description: LLM-backed literary disguise rewrite generator.
+description: Use for rewrite requests that should preserve intent while sounding
+  more literary, poetic, narrative, philosophical, or dramatic.
 metadata:
   version: 0.1.0
+  category: attack
+  stage:
+  - search
 ---
 
 # rewrite-literary

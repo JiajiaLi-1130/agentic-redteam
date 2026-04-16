@@ -1,8 +1,14 @@
 ---
 name: memory-summarize
-description: Summarize recent memory entries for harmless workflow escalation.
+description: Use during analysis or escalation to summarize recent memory entries,
+  risk-matrix context, and workflow signals for downstream selection or meta-skill
+  decisions.
 metadata:
-  version: "1.0"
+  version: '1.0'
+  category: analysis
+  stage:
+  - analysis
+  - escalation
 ---
 
 # memory-summarize

@@ -6,55 +6,17 @@ import json
 import sys
 from typing import Any
 
-try:
-    from openai import OpenAI
-except ImportError:  # pragma: no cover - optional runtime dependency
-    OpenAI = None
-
-
-def extract_content(payload: dict[str, Any]) -> str:
-    """Extract assistant content from an OpenAI-compatible payload."""
-    try:
-        content = payload["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, TypeError) as exc:
-        raise RuntimeError(f"Unexpected model response payload: {payload}") from exc
-    if isinstance(content, list):
-        text_parts = [str(item.get("text", "")) for item in content if isinstance(item, dict)]
-        return "\n".join(part for part in text_parts if part).strip()
-    return str(content).strip()
-
-
-def extract_json_object(text: str) -> str:
-    """Extract one JSON object from plain text or fenced output."""
-    stripped = text.strip()
-    if stripped.startswith("```"):
-        lines = stripped.splitlines()
-        if len(lines) >= 3:
-            stripped = "\n".join(lines[1:-1]).strip()
-
-    start = stripped.find("{")
-    end = stripped.rfind("}")
-    if start == -1 or end == -1 or end <= start:
-        raise RuntimeError(f"Model response did not contain a JSON object: {text}")
-    return stripped[start : end + 1]
-
-
-def parse_candidate_count(action_args: dict[str, Any]) -> int:
-    """Parse and clamp candidate_count from runtime action args."""
-    raw_value = action_args.get("candidate_count", 1)
-    try:
-        requested_count = int(raw_value)
-    except (TypeError, ValueError) as exc:
-        raise RuntimeError(f"Invalid candidate_count: {raw_value}") from exc
-    return min(max(requested_count, 1), 5)
+from core.skill_runtime import parse_candidate_count, parse_enum_arg, request_model_json_candidates
 
 
 def parse_char_intensity(action_args: dict[str, Any]) -> str:
     """Parse char_intensity from runtime action args with schema-aligned defaults."""
-    intensity = str(action_args.get("char_intensity", "medium")).strip().lower()
-    if intensity not in {"light", "medium", "high"}:
-        return "medium"
-    return intensity
+    return parse_enum_arg(
+        action_args,
+        key='char_intensity',
+        allowed={'light', 'medium', 'high'},
+        default='medium',
+    )
 
 
 def build_char_strategy_prompt(seed: str, candidate_count: int, intensity: str) -> str:
@@ -105,99 +67,19 @@ Do not output anything except this JSON object. Ensure the JSON is valid and pro
 def generate_with_model(
     *,
     backend_config: dict[str, Any],
-    seed: str,
     intensity: str,
+    seed: str,
     candidate_count: int,
 ) -> tuple[list[dict[str, str]], dict[str, Any]]:
     """Generate rewrite candidates through the configured model backend."""
-    enabled = bool(backend_config.get("enabled", False))
-    base_url = str(backend_config.get("base_url", "")).rstrip("/")
-    model = str(backend_config.get("model", ""))
-    api_key = str(backend_config.get("api_key", ""))
-    timeout_seconds = int(backend_config.get("timeout_seconds", 12))
-    temperature = float(backend_config.get("temperature", 0.9))
-    max_tokens = int(backend_config.get("max_tokens", 1000))
-
-    if not enabled:
-        raise RuntimeError("skill_model_backend_disabled")
-    if not base_url or not model:
-        raise RuntimeError("skill_model_backend_missing_base_url_or_model")
-    if OpenAI is None:
-        raise RuntimeError("openai_package_not_installed")
-
     user_prompt = build_char_strategy_prompt(seed, candidate_count, intensity)
-    client = OpenAI(base_url=base_url, api_key=api_key)
-
-    def _request_completion(*, force_json: bool) -> dict[str, Any]:
-        request_kwargs: dict[str, Any] = {
-            "model": model,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a helpful assistant that strictly follows instructions. "
-                        "You output only valid JSON and nothing else."
-                    ),
-                },
-                {"role": "user", "content": user_prompt},
-            ],
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "timeout": timeout_seconds,
-        }
-        if force_json:
-            request_kwargs["response_format"] = {"type": "json_object"}
-
-        completion = client.chat.completions.create(**request_kwargs)
-        return completion.model_dump()
-
-    try:
-        payload = _request_completion(force_json=True)
-    except Exception:
-        try:
-            payload = _request_completion(force_json=False)
-        except Exception as retry_exc:
-            raise RuntimeError(f"Model backend request failed: {retry_exc}") from retry_exc
-
-    content = extract_content(payload)
-    try:
-        parsed = json.loads(extract_json_object(content))
-    except Exception as exc:
-        raise RuntimeError(
-            "Model response was not valid JSON. Ensure the backend supports JSON mode or "
-            "returns raw JSON without extra text."
-        ) from exc
-    raw_candidates = list(parsed.get("candidates", []))
-    if not raw_candidates:
-        raise RuntimeError("model_returned_no_candidates")
-
-    candidates: list[dict[str, str]] = []
-    for index, item in enumerate(raw_candidates[:candidate_count], start=1):
-        if not isinstance(item, dict):
-            continue
-        text = " ".join(str(item.get("text", "")).split()).strip()
-        strategy = " ".join(str(item.get("strategy", f"char_rewrite_{index}")).split()).strip()
-        if text:
-            candidates.append(
-                {
-                    "text": text,
-                    "strategy": strategy or f"char_rewrite_{index}",
-                    "style": "char-rewrite",
-                }
-            )
-
-    if not candidates:
-        raise RuntimeError("model_candidates_were_empty")
-    if len(candidates) != candidate_count:
-        raise RuntimeError(
-            f"model_returned_wrong_candidate_count: expected {candidate_count}, got {len(candidates)}"
-        )
-
-    return candidates, {
-        "backend": "openai_compatible",
-        "model": model,
-        "fallback_reason": None,
-    }
+    return request_model_json_candidates(
+        backend_config=backend_config,
+        user_prompt=user_prompt,
+        candidate_count=candidate_count,
+        default_strategy_prefix='char_rewrite',
+        style='char-rewrite',
+    )
 
 
 def main() -> None:

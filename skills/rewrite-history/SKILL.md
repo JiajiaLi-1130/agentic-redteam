@@ -1,8 +1,12 @@
 ---
 name: rewrite-history
-description: LLM-backed historical framing disguise rewrite generator.
+description: Use for rewrite requests that should keep the same core idea but be
+  reframed as historical, retrospective, or past-tense discussion.
 metadata:
   version: 0.1.0
+  category: attack
+  stage:
+  - search
 ---
 
 # rewrite-history

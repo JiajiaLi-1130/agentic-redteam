@@ -258,7 +258,7 @@ class RuleBasedPlanner:
         stage = state.active_workflow_stage
 
         if stage == DIRECT_MEMORY_STAGE:
-            target = self._first_skill_name(registry, category="analysis", tags=["memory"])
+            target = self._required_skill_name(registry, "memory-summarize")
             return [
                 PlanStep(
                     action_type="summarize_memory",
@@ -269,7 +269,7 @@ class RuleBasedPlanner:
             ]
 
         if stage == DIRECT_ANALYSIS_STAGE:
-            target = self._first_skill_name(registry, category="analysis", tags=["retrieval"])
+            target = self._required_skill_name(registry, "retrieval-analysis")
             return [
                 PlanStep(
                     action_type="analyze_memory",
@@ -338,18 +338,12 @@ class RuleBasedPlanner:
             for spec in registry.filter(category="attack", stage="search", status="active")
         ]
 
-    def _first_skill_name(
-        self,
-        registry: SkillRegistry,
-        *,
-        category: str,
-        tags: list[str],
-    ) -> str:
-        """Return the first matching active skill, failing loudly on invalid registry setup."""
-        matches = registry.filter(category=category, tags=tags, status="active")
-        if not matches:
-            raise ValueError(f"No active skill found for category={category!r}, tags={tags!r}.")
-        return matches[0].name
+    def _required_skill_name(self, registry: SkillRegistry, skill_name: str) -> str:
+        """Return a required active skill name, failing loudly on invalid registry setup."""
+        spec = registry.get(skill_name)
+        if spec.status != "active":
+            raise ValueError(f"Required skill is not active: {skill_name}")
+        return spec.name
 
     def _has_skill(self, registry: SkillRegistry, skill_name: str) -> bool:
         """Return whether a skill is currently registered."""
@@ -554,14 +548,8 @@ class LLMPlanner(RuleBasedPlanner):
     ) -> dict[str, Any]:
         """Build planner action constraints that are independent from workflow YAML."""
         search_pool = self._direct_search_pool(registry)
-        memory_targets = [
-            spec.name
-            for spec in registry.filter(category="analysis", tags=["memory"], status="active")
-        ]
-        analysis_targets = [
-            spec.name
-            for spec in registry.filter(category="analysis", tags=["retrieval"], status="active")
-        ]
+        memory_targets = ["memory-summarize"] if self._has_skill(registry, "memory-summarize") else []
+        analysis_targets = ["retrieval-analysis"] if self._has_skill(registry, "retrieval-analysis") else []
         meta_targets = [
             name
             for name in ["refine-skill", "combine-skills", "discover-skill"]

@@ -187,4 +187,4 @@ def test_remote_planner_builds_stage_scoped_skill_cards() -> None:
     assert set(catalog) == {"rewrite-emoji"}
     assert "entry" not in catalog["rewrite-emoji"]
     assert "description" in catalog["rewrite-emoji"]
-    assert catalog["rewrite-emoji"]["applicability"]["prompt_buckets"]
+    assert catalog["rewrite-emoji"]["stage"] == ["search"]

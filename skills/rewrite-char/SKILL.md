@@ -1,8 +1,13 @@
 ---
 name: rewrite-char
-description: LLM-backed character substitution disguise rewrite generator.
+description: Use for rewrite or style-transfer requests that should preserve intent
+  while disguising wording through character substitution, spelling variation, or
+  leetspeak-style obfuscation.
 metadata:
   version: 0.1.0
+  category: attack
+  stage:
+  - search
 ---
 
 # rewrite-char

@@ -41,12 +41,7 @@ def test_executor_runs_skill_protocol_script(tmp_path: Path) -> None:
         description="Protocol fixture",
         category="attack",
         stage=["search"],
-        tags=[],
-        inputs=["seed_prompt"],
-        outputs=["candidates"],
         entry="scripts/run.py",
-        references=[],
-        failure_modes=[],
         root_dir=str(script_path.parents[1]),
     )
     executor = SkillExecutor(PROJECT_ROOT)
@@ -100,12 +95,7 @@ def test_executor_appends_runtime_metadata(tmp_path: Path) -> None:
         description="Metadata fixture",
         category="attack",
         stage=["search"],
-        tags=[],
-        inputs=[],
-        outputs=[],
         entry="scripts/run.py",
-        references=[],
-        failure_modes=[],
         root_dir=str(script_path.parents[1]),
     )
     executor = SkillExecutor(PROJECT_ROOT)

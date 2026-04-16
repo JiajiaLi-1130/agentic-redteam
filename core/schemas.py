@@ -26,87 +26,19 @@ class SkillSpec:
     description: str
     category: str
     stage: list[str]
-    tags: list[str]
-    inputs: list[str]
-    outputs: list[str]
-    entry: str
-    references: list[str]
-    failure_modes: list[str]
+    entry: str = "scripts/run.py"
     family: str = ""
-    variant: str = ""
     status: str = "active"
-    applicability: dict[str, Any] = field(default_factory=dict)
-    parameters_schema: dict[str, Any] = field(default_factory=dict)
-    retrieval_hints: dict[str, Any] = field(default_factory=dict)
-    composition: dict[str, Any] = field(default_factory=dict)
-    refinement: dict[str, Any] = field(default_factory=dict)
-    evaluation_focus: list[str] = field(default_factory=list)
-    safety_scope: dict[str, Any] = field(default_factory=dict)
     root_dir: str = ""
 
     def __post_init__(self) -> None:
-        """Normalize defaults so skills behave like family objects, not thin scripts."""
+        """Normalize the minimal runtime/planner fields."""
         if not self.family:
             self.family = self.name
-        if not self.variant:
-            self.variant = self.name
         if not self.status:
             self.status = "active"
-
-        applicability = {
-            "prompt_buckets": [],
-            "target_traits": [],
-            "memory_tags": [],
-            "preferred_stages": list(self.stage),
-        }
-        applicability.update(self.applicability or {})
-        self.applicability = applicability
-
-        parameters_schema = {
-            "type": "object",
-            "properties": {},
-            "required": [],
-        }
-        parameters_schema.update(self.parameters_schema or {})
-        self.parameters_schema = parameters_schema
-
-        retrieval_hints = {
-            "lexical_triggers": [],
-            "memory_keys": [self.family],
-            "prompt_buckets": list(self.applicability.get("prompt_buckets", [])),
-        }
-        retrieval_hints.update(self.retrieval_hints or {})
-        self.retrieval_hints = retrieval_hints
-
-        composition = {
-            "compatible_families": [],
-            "conflicts_with": [],
-            "pipeline_role": "standalone",
-        }
-        composition.update(self.composition or {})
-        self.composition = composition
-
-        refinement = {
-            "allowed_operations": ["patch_suggestions", "draft_variant"],
-            "promotion_metric": "avg_overall_score",
-            "rollback_metric": "avg_overall_score",
-        }
-        refinement.update(self.refinement or {})
-        self.refinement = refinement
-
-        if not self.evaluation_focus:
-            self.evaluation_focus = ["usefulness_score", "diversity_score"]
-
-        safety_scope = {
-            "mode": "harmless_mock_only",
-            "disallowed_content": [
-                "real_jailbreak_instructions",
-                "real_bypass_workflows",
-                "malware_or_weapon_content",
-            ],
-        }
-        safety_scope.update(self.safety_scope or {})
-        self.safety_scope = safety_scope
+        if not self.entry:
+            self.entry = "scripts/run.py"
 
     def to_dict(self) -> dict[str, Any]:
         """Convert the spec to a plain dictionary."""
@@ -118,23 +50,6 @@ class SkillSpec:
             "description": self.description,
             "category": self.category,
             "stage": list(self.stage),
-            "tags": list(self.tags),
-            "inputs": list(self.inputs),
-            "outputs": list(self.outputs),
-            "applicability": {
-                "prompt_buckets": list(self.applicability.get("prompt_buckets", [])),
-                "target_traits": list(self.applicability.get("target_traits", [])),
-                "memory_tags": list(self.applicability.get("memory_tags", [])),
-            },
-            "retrieval_hints": {
-                "lexical_triggers": list(self.retrieval_hints.get("lexical_triggers", [])),
-                "prompt_buckets": list(self.retrieval_hints.get("prompt_buckets", [])),
-            },
-            "composition": {
-                "compatible_families": list(self.composition.get("compatible_families", [])),
-                "pipeline_role": self.composition.get("pipeline_role", "standalone"),
-            },
-            "evaluation_focus": list(self.evaluation_focus),
         }
 
     @classmethod
@@ -146,22 +61,9 @@ class SkillSpec:
             description=str(data["description"]),
             category=str(data["category"]),
             stage=list(data["stage"]),
-            tags=list(data["tags"]),
-            inputs=list(data["inputs"]),
-            outputs=list(data["outputs"]),
-            entry=str(data["entry"]),
-            references=list(data["references"]),
-            failure_modes=list(data["failure_modes"]),
+            entry=str(data.get("entry", "scripts/run.py")),
             family=str(data.get("family", data["name"])),
-            variant=str(data.get("variant", data["name"])),
             status=str(data.get("status", "active")),
-            applicability=dict(data.get("applicability", {})),
-            parameters_schema=dict(data.get("parameters_schema", {})),
-            retrieval_hints=dict(data.get("retrieval_hints", {})),
-            composition=dict(data.get("composition", {})),
-            refinement=dict(data.get("refinement", {})),
-            evaluation_focus=list(data.get("evaluation_focus", [])),
-            safety_scope=dict(data.get("safety_scope", {})),
             root_dir=str(data.get("root_dir", "")),
         )
 

@@ -1,8 +1,12 @@
 ---
 name: discover-skill
-description: Draft a new skill concept from repeated failure patterns.
+description: Use during escalation when repeated failures suggest the current skill
+  set is insufficient and a new skill concept should be drafted from those patterns.
 metadata:
-  version: "1.0"
+  version: '1.0'
+  category: meta
+  stage:
+  - escalation
 ---
 
 # discover-skill

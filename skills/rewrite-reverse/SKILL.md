@@ -1,8 +1,12 @@
 ---
 name: rewrite-reverse
-description: LLM-backed reverse-framing rewrite generator.
+description: Use for rewrite requests that should keep the same topic but be inverted
+  into protective, preventive, benign, or contrastive framing.
 metadata:
   version: 0.1.0
+  category: attack
+  stage:
+  - search
 ---
 
 # rewrite-reverse

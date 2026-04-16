@@ -126,12 +126,7 @@ def test_version_manager_uses_two_part_versions(tmp_path: Path) -> None:
                 description="",
                 category="attack",
                 stage=["search"],
-                tags=[],
-                inputs=[],
-                outputs=[],
                 entry="scripts/run.py",
-                references=[],
-                failure_modes=[],
                 root_dir=str(skill_root),
             )
         ]
@@ -160,12 +155,7 @@ def test_version_manager_promotes_and_rejects_without_rollback(tmp_path: Path) -
                 description="",
                 category="attack",
                 stage=["search"],
-                tags=[],
-                inputs=[],
-                outputs=[],
                 entry="scripts/run.py",
-                references=[],
-                failure_modes=[],
                 root_dir=str(skill_root),
             )
         ]
@@ -244,12 +234,7 @@ def test_version_manager_can_promote_major_version(tmp_path: Path) -> None:
                 description="",
                 category="attack",
                 stage=["search"],
-                tags=[],
-                inputs=[],
-                outputs=[],
                 entry="scripts/run.py",
-                references=[],
-                failure_modes=[],
                 root_dir=str(skill_root),
             )
         ]
@@ -308,12 +293,7 @@ def test_version_manager_rolls_back_when_active_asr_drops(tmp_path: Path) -> Non
                 description="",
                 category="attack",
                 stage=["search"],
-                tags=[],
-                inputs=[],
-                outputs=[],
                 entry="scripts/run.py",
-                references=[],
-                failure_modes=[],
                 root_dir=str(skill_root),
             )
         ]

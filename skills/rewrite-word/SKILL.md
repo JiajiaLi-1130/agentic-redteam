@@ -1,8 +1,12 @@
 ---
 name: rewrite-word
-description: LLM-backed word-choice rewrite generator.
+description: Use for rewrite requests that should preserve intent while becoming
+  more euphemistic, indirect, subtle, or ambiguous in wording.
 metadata:
   version: 0.1.0
+  category: attack
+  stage:
+  - search
 ---
 
 # rewrite-word

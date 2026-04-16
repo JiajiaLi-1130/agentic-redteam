@@ -1,8 +1,12 @@
 ---
 name: rewrite-hypo
-description: LLM-backed hypothetical framing disguise rewrite generator.
+description: Use for rewrite requests that should preserve the underlying idea while
+  being reframed as hypothetical, imagined, or what-if scenarios.
 metadata:
   version: 0.1.0
+  category: attack
+  stage:
+  - search
 ---
 
 # rewrite-hypo

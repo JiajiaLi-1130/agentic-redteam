@@ -1,8 +1,12 @@
 ---
 name: rewrite-space
-description: LLM-backed space-shift rewrite generator.
+description: Use for rewrite requests that should keep the core idea but shift the
+  wording into a fictional, futuristic, virtual-world, or mythic setting.
 metadata:
   version: 0.1.0
+  category: attack
+  stage:
+  - search
 ---
 
 # rewrite-space

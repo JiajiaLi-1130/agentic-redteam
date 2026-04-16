@@ -1,8 +1,13 @@
 ---
 name: rewrite-emoji
-description: LLM-backed emoji disguise rewrite generator.
+description: Use for rewrite, style-transfer, or safety-sensitive prompts that should
+  keep the original intent but look more playful, indirect, or harmless on the surface
+  through emoji-heavy disguise.
 metadata:
   version: 0.1.0
+  category: attack
+  stage:
+  - search
 ---
 
 # rewrite-emoji

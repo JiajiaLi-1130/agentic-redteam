@@ -1,8 +1,12 @@
 ---
 name: rewrite-security
-description: LLM-backed security-framing rewrite generator.
+description: Use for rewrite requests that should preserve the topic while being
+  reframed as security review, audit, compliance, or defense-oriented discussion.
 metadata:
   version: 0.1.0
+  category: attack
+  stage:
+  - search
 ---
 
 # rewrite-security

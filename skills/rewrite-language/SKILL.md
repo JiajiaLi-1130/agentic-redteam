@@ -1,8 +1,12 @@
 ---
 name: rewrite-language
-description: LLM-backed multilingual disguise rewrite generator.
+description: Use for rewrite or style-transfer requests that should sound more academic,
+  technical, or indirect through multilingual, jargon-heavy, or mixed-language phrasing.
 metadata:
   version: 0.1.0
+  category: attack
+  stage:
+  - search
 ---
 
 # rewrite-language

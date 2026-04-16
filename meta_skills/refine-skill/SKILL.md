@@ -1,8 +1,13 @@
 ---
 name: refine-skill
-description: Create patch suggestions or draft variants for configured skills.
+description: Use during refinement or escalation to propose patch suggestions, runtime
+  adjustments, or draft variants for an existing skill based on recent feedback.
 metadata:
-  version: "1.0"
+  version: '1.0'
+  category: meta
+  stage:
+  - refine
+  - escalation
 ---
 
 # refine-skill

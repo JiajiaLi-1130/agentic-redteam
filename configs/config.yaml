@@ -77,9 +77,9 @@ environment:
   llm:
     provider: openai_compatible
     enabled: true
-    base_url: "https://api.boyuerichdata.opensphereai.com/v1" # "http://s-20260304150204-6bjfm-decode.ailab-safethm.svc:22103/v1" # "https://api.boyuerichdata.opensphereai.com/v1"
-    model: "gemini-2.5-flash" # "orm" # "gemini-2.5-flash"
-    api_key: "sk-xI8zGRXkgJzoejUP7KtcBbRfqNazmWnFqSNuw6zMn5rZClFy" # "FAKE_API_KEY"
+    base_url: "http://s-20260304150204-6bjfm-decode.ailab-safethm.svc:22103/v1" # "http://s-20260304150204-6bjfm-decode.ailab-safethm.svc:22103/v1" # "https://api.boyuerichdata.opensphereai.com/v1"
+    model: "orm" # "orm" # "gemini-2.5-flash"
+    api_key: "FAKE_API_KEY" # "FAKE_API_KEY"
     transport: "openai_sdk"
     include_system_prompt: false
     send_sampling_params: true

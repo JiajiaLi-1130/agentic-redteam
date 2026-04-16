@@ -1,8 +1,13 @@
 ---
 name: retrieval-analysis
-description: Analyze recent failures and memory patterns.
+description: Use during analysis or escalation to inspect recent failures, memory
+  patterns, selector signals, and possible refinement or discovery opportunities.
 metadata:
-  version: "1.0"
+  version: '1.0'
+  category: analysis
+  stage:
+  - analysis
+  - escalation
 ---
 
 # retrieval-analysis
