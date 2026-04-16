@@ -1,1 +1,1 @@
-"""Core runtime package for the toy agentic framework."""
+"""Core runtime package for the agentic red-team framework."""

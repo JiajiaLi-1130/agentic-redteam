@@ -6,9 +6,9 @@ paths:
   state_dir: state
 
 budgets:
-  max_steps: 6
-  max_skill_calls: 24
-  max_environment_calls: 24
+  max_steps: 300
+  max_skill_calls: 300
+  max_environment_calls: 300
 
 planner:
   backend: llm
@@ -28,13 +28,26 @@ meta_skills:
     provider: openai_compatible
     enabled: true
     inherit_planner_endpoint: true
-    base_url: ""
-    model: ""
-    api_key: ""
+    base_url: "http://s-20260414130351-jjtwx-decode.ailab-safethm.svc:22372/v1"
+    model: "orm"
+    api_key: "FAKE_API_KEY"
     timeout_seconds: 12
     temperature: 0.2
     max_tokens: 1200
     fallback_to_template: true
+
+skills:
+  backend: llm
+  llm:
+    provider: openai_compatible
+    enabled: true
+    inherit_planner_endpoint: true
+    base_url: "http://s-20260414130351-jjtwx-decode.ailab-safethm.svc:22372/v1"
+    model: "orm"
+    api_key: "FAKE_API_KEY"
+    timeout_seconds: 12
+    temperature: 0.9
+    max_tokens: 1000
 
 evaluator:
   backend: composite
@@ -59,14 +72,14 @@ environment:
     mode: harmless-sandbox
     notes:
       - default backend is local mock
-      - remote target execution is optional and still gated to harmless toy prompts
+      - remote target execution is optional and still gated by framework constraints
       - no real policy bypass testing
   llm:
     provider: openai_compatible
     enabled: true
-    base_url: "http://s-20260304150204-6bjfm-decode.ailab-safethm.svc:22103/v1"
-    model: "orm"
-    api_key: "FAKE_API_KEY"
+    base_url: "https://api.boyuerichdata.opensphereai.com/v1" # "http://s-20260304150204-6bjfm-decode.ailab-safethm.svc:22103/v1" # "https://api.boyuerichdata.opensphereai.com/v1"
+    model: "gemini-2.5-flash" # "orm" # "gemini-2.5-flash"
+    api_key: "sk-xI8zGRXkgJzoejUP7KtcBbRfqNazmWnFqSNuw6zMn5rZClFy" # "FAKE_API_KEY"
     transport: "openai_sdk"
     include_system_prompt: false
     send_sampling_params: true
@@ -83,4 +96,4 @@ defaults:
 constraints:
   harmless_only: true
   block_real_bypass_content: true
-  purpose: "architecture validation with toy skills only"
+  purpose: "architecture validation with configured rewrite skills"

@@ -334,9 +334,7 @@ class SkillVersionManager:
                 return version
             if major_number == 0:
                 return f"{minor_number}.{patch_number}"
-            if patch_number == 0:
-                return f"{major_number}.{minor_number}"
-            return f"{major_number}.{patch_number}"
+            return f"{major_number}.{minor_number}"
         if len(parts) == 1:
             try:
                 return f"{int(parts[0])}.0"

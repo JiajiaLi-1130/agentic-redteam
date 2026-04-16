@@ -73,6 +73,8 @@ class Workflow:
             return left == right
         if op == "!=":
             return left != right
+        if op in {">", ">=", "<", "<="} and (left is None or right is None):
+            return False
         if op == ">":
             return left > right
         if op == ">=":

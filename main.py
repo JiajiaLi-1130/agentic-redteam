@@ -6,10 +6,11 @@ import argparse
 import json
 from pathlib import Path
 
+from core.planner import DIRECT_WORKFLOW_NAME
 from core.planner_loop import PlannerLoop
 
 
-DEFAULT_SEED_PROMPT_FILE = Path(__file__).resolve().parent / "data" / "seed_prompt.json"
+DEFAULT_SEED_PROMPT_FILE = Path(__file__).resolve().parent / "data" / "seed_prompt.jsonl"
 
 
 def _read_seed_prompt_from_jsonl(path: Path, *, index: int) -> str:
@@ -51,7 +52,7 @@ def _resolve_seed_prompt(args: argparse.Namespace) -> str:
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Run the toy skill-based safety evaluation framework."
+        description="Run the agentic red-team skill evaluation framework."
     )
     parser.add_argument(
         "--seed_prompt",
@@ -76,6 +77,11 @@ def parse_args() -> argparse.Namespace:
         "--workflow",
         default="basic",
         help="Workflow name to use, typically 'basic' or 'escalation'.",
+    )
+    parser.add_argument(
+        "--planner-direct",
+        action="store_true",
+        help="Let the planner choose directly from the skill registry instead of using a workflow YAML.",
     )
     parser.add_argument(
         "--max_steps",
@@ -116,9 +122,10 @@ def main() -> None:
         guard_enabled=args.guard_enabled,
         environment_enabled=args.environment_enabled,
     )
+    # import pdb; pdb.set_trace()
     summary = loop.run(
         seed_prompt=seed_prompt,
-        workflow_name=args.workflow,
+        workflow_name=DIRECT_WORKFLOW_NAME if args.planner_direct else args.workflow,
         max_steps=args.max_steps,
     )
     print(json.dumps(summary, indent=2, ensure_ascii=False))

@@ -10,7 +10,7 @@ from core.environment import build_environment
 from core.evaluator import MockEvaluator
 from core.executor import SkillExecutor
 from core.memory_store import MemoryStore
-from core.planner import LLMPlanner, RuleBasedPlanner
+from core.planner import DIRECT_STAGE, DIRECT_WORKFLOW_NAME, LLMPlanner, RuleBasedPlanner
 from core.registry import SkillRegistry
 from core.schemas import AgentState, MemoryEntry, PlanStep, SkillContext, SkillExecutionResult
 from core.selector import SearchSkillSelector
@@ -24,7 +24,7 @@ LEGACY_LLM_BACKEND = "openai_compatible"
 
 
 class PlannerLoop:
-    """High-level runtime for the toy agentic framework."""
+    """High-level runtime for the agentic red-team framework."""
 
     def __init__(
         self,
@@ -83,18 +83,23 @@ class PlannerLoop:
         self.selector = SearchSkillSelector()
         self.recent_memory_window = int(self.config["defaults"].get("recent_memory_window", 5))
 
+        import pdb; pdb.set_trace()
+
     def run(
         self,
         *,
         seed_prompt: str,
-        workflow_name: str = "basic",
+        workflow_name: str | None = "basic",
         max_steps: int | None = None,
     ) -> dict[str, Any]:
         """Run the planner loop from start to finish."""
         workflows = self._load_workflows()
-        if workflow_name not in workflows:
+        direct_planning = workflow_name in {None, DIRECT_WORKFLOW_NAME}
+        if not direct_planning and workflow_name not in workflows:
             raise ValueError(f"Unknown workflow: {workflow_name}")
-        chosen_workflow = workflows[workflow_name]
+        chosen_workflow = None if direct_planning else workflows[str(workflow_name)]
+        resolved_workflow_name = DIRECT_WORKFLOW_NAME if direct_planning else str(workflow_name)
+        initial_stage = DIRECT_STAGE if direct_planning else chosen_workflow.initial_stage
 
         budget = BudgetManager(
             max_steps=max_steps or int(self.config["budgets"]["max_steps"]),
@@ -111,10 +116,10 @@ class PlannerLoop:
             seed_prompt=seed_prompt,
             memory_summary=memory.summary(),
             last_eval={},
-            active_workflow_stage=chosen_workflow.initial_stage,
+            active_workflow_stage=initial_stage,
             available_skills=self.registry.names(),
             budget_remaining=budget.remaining(),
-            workflow_name=workflow_name,
+            workflow_name=resolved_workflow_name,
         )
 
         while budget.can_continue():
@@ -346,9 +351,7 @@ class PlannerLoop:
             eval_payload, skill_metrics = self._evaluate_candidates(
                 state,
                 memory,
-                budget,
                 run_dir,
-                workflows,
             )
             self._record_version_observations(
                 state=state,
@@ -415,22 +418,30 @@ class PlannerLoop:
             state.active_workflow_stage = "stop"
             return
 
-        selected_skill_count = 1
+        try:
+            requested_skill_count = int(plan_step.args.get("selected_skill_count", 1))
+        except (TypeError, ValueError):
+            requested_skill_count = 1
+        selected_skill_count = max(
+            1,
+            min(requested_skill_count, len(search_pool), int(budget.remaining()["skill_calls"])),
+        )
         self.selector.exploration_weight = float(
             plan_step.args.get("exploration_weight", self.selector.exploration_weight)
         )
 
-        paths = self.selector.select_paths(
+        ranked_paths = self.selector.select_paths(
             seed_prompt=state.seed_prompt,
             target_risk_type=target_risk_type,
             search_pool=search_pool,
             memory_store=memory,
             version_manager=self.version_manager,
             registry=self.registry,
-            path_count=selected_skill_count,
-            beam_width=selected_skill_count,
+            path_count=len(search_pool),
+            beam_width=len(search_pool),
             path_length=1,
         )
+        paths = ranked_paths[:selected_skill_count]
         if not paths:
             state.active_workflow_stage = "stop"
             return
@@ -451,6 +462,7 @@ class PlannerLoop:
                 "risk_type": state.current_risk_type,
                 "seed_prompt": state.seed_prompt,
                 "selected_skills": [path.to_dict() for path in paths],
+                "candidate_rankings": [path.to_dict() for path in ranked_paths],
             },
         )
 
@@ -464,6 +476,7 @@ class PlannerLoop:
                     target=node.skill_name,
                     args={
                         "mode": str(plan_step.args.get("mode", "selected_search")),
+                        "candidate_count": int(plan_step.args.get("candidate_count", 1)),
                         "selection_score": round(node.score, 6),
                         "prompt_bucket": path.prompt_bucket,
                         "risk_type": path.risk_type,
@@ -560,9 +573,7 @@ class PlannerLoop:
         self,
         state: AgentState,
         memory: MemoryStore,
-        budget: BudgetManager,
         run_dir: Path,
-        workflows: dict[str, Workflow],
     ) -> tuple[
         dict[str, Any],
         dict[tuple[str, str], dict[str, Any]],
@@ -574,46 +585,6 @@ class PlannerLoop:
             seed_prompt=state.seed_prompt,
         )
         eval_payload = eval_result.to_dict()
-
-        workflow = workflows.get(state.workflow_name)
-        evaluation_skills = workflow.get_group("evaluation") if workflow else []
-        evaluation_skill = next(
-            (skill_name for skill_name in evaluation_skills if skill_name in state.available_skills),
-            None,
-        )
-        if budget.remaining()["skill_calls"] > 0 and evaluation_skill:
-            evaluation_spec = self.registry.get(evaluation_skill)
-            context = self._build_skill_context(
-                state=state,
-                memory=memory,
-                plan_args={"mode": evaluation_skill},
-                skill_name=evaluation_spec.name,
-            )
-            context.extra["last_responses"] = state.last_responses
-            context.extra["precomputed_eval"] = eval_payload
-            extra_result = self.executor.execute(evaluation_spec, context)
-            budget.consume_skill()
-            eval_payload["notes"].extend(extra_result.artifacts.get("notes", []))
-            eval_payload["metadata"]["evaluation_skill"] = extra_result.artifacts
-            state.artifacts[evaluation_spec.name] = extra_result.artifacts
-
-            append_jsonl(
-                run_dir / "skill_calls.jsonl",
-                {
-                    "timestamp": utc_now_iso(),
-                    "run_id": state.run_id,
-                    "step_id": state.current_step,
-                    "action_type": "invoke_skill",
-                    "skill_name": evaluation_spec.name,
-                    "plan_reason": "Supplement evaluator output with the evaluation skill.",
-                    "context_summary": {
-                        "stage": state.active_workflow_stage,
-                        "prior_candidate_count": len(context.prior_candidates),
-                        "memory_total_entries": state.memory_summary.get("total_entries", 0),
-                    },
-                    "result": extra_result.to_dict(),
-                },
-            )
 
         best_index = eval_result.metadata.get("best_candidate_index")
         skill_names = [candidate.get("source_skill") for candidate in state.pending_candidates]
@@ -823,6 +794,7 @@ class PlannerLoop:
             "requested_skill_doc": self._read_skill_doc(skill_name),
             "active_skill_version": active_skill_version,
             "active_skill_draft": self.version_manager.active_draft_artifact(skill_name),
+            "skill_model_backend": self._resolve_skill_model_backend_config(),
             "meta_skill_backend": self._resolve_meta_skill_backend_config(),
             "current_risk_type": state.current_risk_type,
             "memory_matrix": memory.matrix(),
@@ -886,6 +858,19 @@ class PlannerLoop:
                     meta_config[key] = planner_config.get(key, "")
         return meta_config
 
+    def _resolve_skill_model_backend_config(self) -> dict[str, Any]:
+        """Resolve the model backend config passed to model-backed skills."""
+        skill_config = self._llm_config_from(dict(self.config.get("skills", {})))
+        if not skill_config:
+            return {"enabled": False}
+
+        if bool(skill_config.get("inherit_planner_endpoint", False)):
+            planner_config = self._llm_config_from(dict(self.config.get("planner", {})))
+            for key in ("base_url", "model", "api_key"):
+                if not skill_config.get(key):
+                    skill_config[key] = planner_config.get(key, "")
+        return skill_config
+
     def _executor_timeout_seconds(self) -> int:
         """Choose a subprocess timeout that safely exceeds nested backend calls."""
         planner_timeout = int(
@@ -894,13 +879,16 @@ class PlannerLoop:
         meta_timeout = int(
             self._llm_config_from(dict(self.config.get("meta_skills", {}))).get("timeout_seconds", 12)
         )
+        skill_timeout = int(
+            self._llm_config_from(dict(self.config.get("skills", {}))).get("timeout_seconds", 12)
+        )
         evaluator_timeout = int(
             self.config.get("evaluator", {}).get("guard_model", {}).get("timeout_seconds", 8)
         )
         environment_timeout = int(
             self._llm_config_from(dict(self.config.get("environment", {}))).get("timeout_seconds", 12)
         )
-        return max(30, planner_timeout, meta_timeout, evaluator_timeout, environment_timeout) + 5
+        return max(30, planner_timeout, meta_timeout, skill_timeout, evaluator_timeout, environment_timeout) + 5
 
     def _log_step_summary(
         self,

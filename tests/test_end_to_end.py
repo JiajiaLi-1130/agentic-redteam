@@ -6,16 +6,55 @@ import json
 from pathlib import Path
 
 from core.environment import MockEnvironment, OpenAICompatibleEnvironment
-from core.planner import LLMPlanner, RuleBasedPlanner
+from core.planner import DIRECT_WORKFLOW_NAME, LLMPlanner, RuleBasedPlanner
 from core.planner_loop import PlannerLoop
+from core.schemas import SkillExecutionResult
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+REWRITE_SKILLS = {
+    "rewrite-char",
+    "rewrite-emoji",
+    "rewrite-history",
+    "rewrite-hypo",
+    "rewrite-language",
+    "rewrite-literary",
+    "rewrite-reverse",
+    "rewrite-security",
+    "rewrite-space",
+    "rewrite-word",
+}
 
 
-def test_end_to_end_basic_workflow_runs(tmp_path: Path) -> None:
+def test_end_to_end_basic_workflow_runs(tmp_path: Path, monkeypatch) -> None:
     """Basic workflow should run through multiple steps and write traces."""
     run_root = tmp_path / "runs"
+
+    def fake_execute(_executor, spec, context):
+        if spec.name in REWRITE_SKILLS:
+            assert context.extra["skill_model_backend"]["enabled"] is True
+            return SkillExecutionResult(
+                skill_name=spec.name,
+                candidates=[
+                    {
+                        "text": f"REWRITE {spec.name} {context.seed_prompt}",
+                        "strategy": "rewrite_fixture",
+                    }
+                ],
+                rationale="test fixture rewrite",
+                artifacts={"candidate_count": 1},
+                metadata={"protocol_version": "1"},
+            )
+        return SkillExecutionResult(
+            skill_name=spec.name,
+            candidates=[],
+            rationale="test fixture",
+            artifacts={"notes": []},
+            metadata={"protocol_version": "1"},
+        )
+
+    monkeypatch.setattr("core.executor.SkillExecutor.execute", fake_execute)
+
     loop = PlannerLoop(
         project_root=PROJECT_ROOT,
         run_root=run_root,
@@ -74,3 +113,67 @@ def test_loop_enable_flags_switch_backends(tmp_path: Path) -> None:
     assert disabled_loop.config["environment"]["backend"] == "mock"
     assert type(disabled_loop.planner) is RuleBasedPlanner
     assert isinstance(disabled_loop.environment, MockEnvironment)
+
+
+def test_end_to_end_planner_direct_runs_without_basic_workflow(tmp_path: Path, monkeypatch) -> None:
+    """Planner-direct mode should run without selecting a workflow YAML."""
+    run_root = tmp_path / "runs"
+
+    def fake_execute(_executor, spec, context):
+        if spec.name in REWRITE_SKILLS:
+            assert context.extra["action_args"].get("candidate_count") == 1
+            return SkillExecutionResult(
+                skill_name=spec.name,
+                candidates=[
+                    {
+                        "text": f"DIRECT {spec.name} {context.seed_prompt}",
+                        "strategy": "direct_fixture",
+                    }
+                ],
+                rationale="direct planner test fixture rewrite",
+                artifacts={"candidate_count": 1},
+                metadata={"protocol_version": "1"},
+            )
+        return SkillExecutionResult(
+            skill_name=spec.name,
+            candidates=[],
+            rationale="direct planner test fixture",
+            artifacts={"notes": []},
+            metadata={"protocol_version": "1"},
+        )
+
+    monkeypatch.setattr("core.executor.SkillExecutor.execute", fake_execute)
+
+    loop = PlannerLoop(
+        project_root=PROJECT_ROOT,
+        run_root=run_root,
+        state_root=tmp_path / "state",
+        planner_enabled=False,
+        guard_enabled=False,
+        environment_enabled=False,
+    )
+
+    summary = loop.run(
+        seed_prompt="Explain how rainbows form in a friendly tone.",
+        workflow_name=DIRECT_WORKFLOW_NAME,
+        max_steps=4,
+    )
+
+    run_dir = Path(summary["generated_run_dir"])
+    final_summary = json.loads((run_dir / "final_summary.json").read_text(encoding="utf-8"))
+    first_selection = json.loads(
+        (run_dir / "selection_calls.jsonl").read_text(encoding="utf-8").splitlines()[0]
+    )
+    selected_names = {
+        skill_name
+        for path in first_selection["selected_skills"]
+        for skill_name in path["skill_names"]
+    }
+
+    assert summary["workflow"] == DIRECT_WORKFLOW_NAME
+    assert final_summary["workflow"] == DIRECT_WORKFLOW_NAME
+    assert len(selected_names) == 2
+    assert selected_names.issubset(REWRITE_SKILLS)
+    assert "candidate_rankings" in first_selection
+    assert (run_dir / "selection_calls.jsonl").exists()
+    assert (run_dir / "evals.jsonl").exists()

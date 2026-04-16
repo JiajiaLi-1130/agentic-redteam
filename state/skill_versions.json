@@ -1,32 +1,5 @@
 {
   "skills": {
-    "evaluation-mock": {
-      "active_version": "2.0",
-      "previous_version": null,
-      "active_draft_artifact": {},
-      "previous_draft_artifact": {},
-      "active_metrics": {
-        "attempts": 0,
-        "successes": 0,
-        "asr": 0.0,
-        "avg_usefulness_score": 0.0,
-        "avg_refusal_score": 0.0,
-        "avg_overall_score": 0.0
-      },
-      "previous_metrics": {
-        "attempts": 0,
-        "successes": 0,
-        "asr": 0.0,
-        "avg_usefulness_score": 0.0,
-        "avg_refusal_score": 0.0,
-        "avg_overall_score": 0.0
-      },
-      "rollback": {
-        "metric": "asr",
-        "min_attempts": 20,
-        "margin": 0.05
-      }
-    },
     "memory-summarize": {
       "active_version": "1.0",
       "previous_version": null,
@@ -81,18 +54,18 @@
         "margin": 0.05
       }
     },
-    "toy-encoding": {
+    "rewrite-emoji": {
       "active_version": "1.0",
       "previous_version": null,
       "active_draft_artifact": {},
       "previous_draft_artifact": {},
       "active_metrics": {
-        "attempts": 42,
-        "successes": 14,
-        "asr": 0.3333333333333333,
-        "avg_usefulness_score": 0.6811904761904761,
-        "avg_refusal_score": 0.0,
-        "avg_overall_score": 0.6811904761904761
+        "attempts": 54,
+        "successes": 47,
+        "asr": 0.8703703703703703,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.12962962962962962,
+        "avg_overall_score": 0.8703703703703703
       },
       "previous_metrics": {
         "attempts": 0,
@@ -108,56 +81,18 @@
         "margin": 0.05
       }
     },
-    "toy-paraphrase": {
+    "rewrite-language": {
       "active_version": "1.0",
       "previous_version": null,
       "active_draft_artifact": {},
       "previous_draft_artifact": {},
       "active_metrics": {
-        "attempts": 174,
-        "successes": 174,
-        "asr": 1.0,
-        "avg_usefulness_score": 0.85,
-        "avg_refusal_score": 0.0,
-        "avg_overall_score": 0.85
-      },
-      "previous_metrics": {
-        "attempts": 0,
-        "successes": 0,
-        "asr": 0.0,
+        "attempts": 34,
+        "successes": 29,
+        "asr": 0.8529411764705882,
         "avg_usefulness_score": 0.0,
-        "avg_refusal_score": 0.0,
-        "avg_overall_score": 0.0
-      },
-      "rollback": {
-        "metric": "asr",
-        "min_attempts": 20,
-        "margin": 0.05
-      }
-    },
-    "toy-persona": {
-      "active_version": "1.1",
-      "previous_version": "1.0",
-      "active_draft_artifact": {
-        "draft_skill": {
-          "name": "toy-persona-refined-draft",
-          "base_skill": "toy-persona",
-          "description": "Draft refinement of toy-persona with slightly richer harmless variation.",
-          "suggestions": [
-            "Increase candidate variety by changing output templates.",
-            "Attach richer artifacts that explain why each candidate was generated.",
-            "Keep the current direction but add more diverse harmless phrasing."
-          ]
-        }
-      },
-      "previous_draft_artifact": {},
-      "active_metrics": {
-        "attempts": 219,
-        "successes": 219,
-        "asr": 1.0,
-        "avg_usefulness_score": 0.8500000000000005,
-        "avg_refusal_score": 0.0,
-        "avg_overall_score": 0.8500000000000005
+        "avg_refusal_score": 0.14705882352941177,
+        "avg_overall_score": 0.8529411764705882
       },
       "previous_metrics": {
         "attempts": 0,
@@ -228,6 +163,222 @@
       }
     },
     "refine-skill": {
+      "active_version": "1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "rewrite-char": {
+      "active_version": "1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 2,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 1.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "rewrite-history": {
+      "active_version": "1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 2,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 1.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "rewrite-hypo": {
+      "active_version": "1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "rewrite-literary": {
+      "active_version": "1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "rewrite-reverse": {
+      "active_version": "1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "rewrite-security": {
+      "active_version": "1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "rewrite-space": {
+      "active_version": "1.0",
+      "previous_version": null,
+      "active_draft_artifact": {},
+      "previous_draft_artifact": {},
+      "active_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "previous_metrics": {
+        "attempts": 0,
+        "successes": 0,
+        "asr": 0.0,
+        "avg_usefulness_score": 0.0,
+        "avg_refusal_score": 0.0,
+        "avg_overall_score": 0.0
+      },
+      "rollback": {
+        "metric": "asr",
+        "min_attempts": 20,
+        "margin": 0.05
+      }
+    },
+    "rewrite-word": {
       "active_version": "1.0",
       "previous_version": null,
       "active_draft_artifact": {},

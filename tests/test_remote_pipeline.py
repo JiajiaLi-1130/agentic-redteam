@@ -1,67 +1,52 @@
-from pathlib import Path
+"""Opt-in remote pipeline smoke test.
+
+This test intentionally does not run during normal local pytest runs because it
+calls configured remote planner, guard, environment, and skill-model backends.
+"""
+
+from __future__ import annotations
+
 import json
+import os
+from pathlib import Path
+
+import pytest
 
 from core.planner_loop import PlannerLoop
 
-PROJECT_ROOT = Path("/mnt/shared-storage-user/wenxiaoyu/wenxiaoyu/agentic-redteam")
 
-loop = PlannerLoop(
-    project_root=PROJECT_ROOT,
-    planner_enabled=True,
-    guard_enabled=True,
-    environment_enabled=True,
-)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
-# 先把预算调高，但前提是你已经修掉“重复 search 不 execute”的问题
-loop.config["budgets"]["max_steps"] = 10
-loop.config["budgets"]["max_skill_calls"] = 80
-loop.config["budgets"]["max_environment_calls"] = 80
 
-summary = loop.run(
-    seed_prompt="Explain how rainbows form in simple classroom language, with a clear and friendly tone.",
-    workflow_name="basic",
-    max_steps=10,
-)
+def test_remote_pipeline_runs_when_explicitly_enabled(tmp_path: Path) -> None:
+    """Run the full remote-backed loop only when the caller opts in."""
+    if os.getenv("AGENTIC_REDTEAM_RUN_REMOTE_PIPELINE") != "1":
+        pytest.skip("Set AGENTIC_REDTEAM_RUN_REMOTE_PIPELINE=1 to run remote pipeline smoke test.")
 
-print(json.dumps(summary, indent=2, ensure_ascii=False))
-print("run_dir =", summary["generated_run_dir"])
+    loop = PlannerLoop(
+        project_root=PROJECT_ROOT,
+        run_root=tmp_path / "runs",
+        state_root=tmp_path / "state",
+        planner_enabled=True,
+        guard_enabled=True,
+        environment_enabled=True,
+    )
 
-# inspect_run_simple.py
-from pathlib import Path
-import json
+    loop.config["budgets"]["max_steps"] = 10
+    loop.config["budgets"]["max_skill_calls"] = 80
+    loop.config["budgets"]["max_environment_calls"] = 80
 
-run_dir = Path("/mnt/shared-storage-user/wenxiaoyu/wenxiaoyu/agentic-redteam/runs/PUT_YOUR_RUN_ID_HERE")
+    summary = loop.run(
+        seed_prompt=(
+            "Explain how rainbows form in simple classroom language, "
+            "with a clear and friendly tone."
+        ),
+        workflow_name="basic",
+        max_steps=10,
+    )
 
-summary = json.loads((run_dir / "final_summary.json").read_text(encoding="utf-8"))
-print("run_id:", summary["run_id"])
-print("workflow:", summary["workflow"])
-print("final_stage:", summary["final_stage"])
-print("steps_completed:", summary["steps_completed"])
-print("planner_flags:", summary["planner_flags"])
-print("memory_total_entries:", summary["memory_summary"]["total_entries"])
-print("last_eval_keys:", list(summary["last_eval"].keys()))
-
-selection_path = run_dir / "selection_calls.jsonl"
-if selection_path.exists():
-    print("\nselected skills:")
-    for line in selection_path.read_text(encoding="utf-8").strip().splitlines():
-        item = json.loads(line)
-        selections = item.get("selected_skills", [])
-        skill_names = [p.get("skill_names", []) for p in selections]
-        print(f"step={item['step_id']} skills={skill_names}")
-
-eval_path = run_dir / "evals.jsonl"
-if eval_path.exists():
-    print("\neval summary:")
-    for line in eval_path.read_text(encoding="utf-8").strip().splitlines():
-        item = json.loads(line)
-        ev = item["eval_result"]
-        print(
-            f"step={item['step_id']} "
-            f"success={ev.get('success')} "
-            f"usefulness={ev.get('usefulness_score')} "
-            f"refusal={ev.get('refusal_score')} "
-            f"best_skill={ev.get('best_skill')}"
-        )
-else:
-    print("\nno evals.jsonl found")
+    run_dir = Path(summary["generated_run_dir"])
+    final_summary = json.loads((run_dir / "final_summary.json").read_text(encoding="utf-8"))
+    assert final_summary["run_id"] == summary["run_id"]
+    assert (run_dir / "state_trace.jsonl").exists()
+    assert (run_dir / "selection_calls.jsonl").exists()

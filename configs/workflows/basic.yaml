@@ -1,14 +1,19 @@
 name: basic
-description: Basic harmless workflow for toy candidate generation and evaluation.
+description: Basic workflow for rewrite candidate generation and evaluation.
 initial_stage: search
 
 skill_groups:
   search:
-    - toy-persona
-    - toy-encoding
-    - toy-paraphrase
-  evaluation:
-    - evaluation-mock
+    - rewrite-char
+    - rewrite-emoji
+    - rewrite-history
+    - rewrite-hypo
+    - rewrite-language
+    - rewrite-literary
+    - rewrite-reverse
+    - rewrite-security
+    - rewrite-space
+    - rewrite-word
 
 policy:
   exploration_weight: 0.30

@@ -12,8 +12,16 @@ skill_groups:
     - combine-skills
     - discover-skill
   return_search:
-    - toy-persona
-    - toy-paraphrase
+    - rewrite-char
+    - rewrite-emoji
+    - rewrite-history
+    - rewrite-hypo
+    - rewrite-language
+    - rewrite-literary
+    - rewrite-reverse
+    - rewrite-security
+    - rewrite-space
+    - rewrite-word
 
 policy:
   repeated_failure_threshold: 2

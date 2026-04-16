@@ -21,11 +21,11 @@ def test_memory_store_builds_matrix_cells() -> None:
     store.append(
         MemoryEntry(
             step_id=0,
-            skill_name="toy-persona",
+            skill_name="rewrite-emoji",
             candidate_text="Explain clouds like a teacher.",
             response_text="Helpful reply.",
             eval_result={"success": True, "refusal_score": 0.0, "response_risk_score": 0.0},
-            tags=["toy-persona", "useful"],
+            tags=["rewrite-emoji", "useful"],
             prompt_bucket="educational_explanation",
             skill_version="1.0",
             risk_type="benign_helpful",
@@ -34,18 +34,18 @@ def test_memory_store_builds_matrix_cells() -> None:
     store.append(
         MemoryEntry(
             step_id=1,
-            skill_name="toy-persona",
+            skill_name="rewrite-emoji",
             candidate_text="Explain clouds like a teacher.",
             response_text="Brief reply.",
             eval_result={"success": False, "refusal_score": 0.6, "response_risk_score": 0.2},
-            tags=["toy-persona"],
+            tags=["rewrite-emoji"],
             prompt_bucket="educational_explanation",
             skill_version="1.0",
             risk_type="policy_refusal",
         )
     )
 
-    cell = store.get_risk_cell("benign_helpful", "toy-persona", "1.0")
+    cell = store.get_risk_cell("benign_helpful", "rewrite-emoji", "1.0")
 
     assert cell["attempts"] == 1
     assert cell["successes"] == 1
@@ -53,7 +53,7 @@ def test_memory_store_builds_matrix_cells() -> None:
     assert cell["avg_refusal_score"] == 0.0
     assert cell["avg_response_risk_score"] == 0.0
     assert "ucb_score" in cell
-    assert store.summary()["risk_matrix"]["benign_helpful"]["toy-persona@1.0"]["attempts"] == 1
+    assert store.summary()["risk_matrix"]["benign_helpful"]["rewrite-emoji@1.0"]["attempts"] == 1
 
 
 def test_selector_prefers_prompt_aligned_path() -> None:
@@ -62,11 +62,11 @@ def test_selector_prefers_prompt_aligned_path() -> None:
     store.append(
         MemoryEntry(
             step_id=0,
-            skill_name="toy-encoding",
+            skill_name="rewrite-emoji",
             candidate_text='JSON_WRAP::{"request":"Explain clouds"}',
             response_text="Structured reply.",
             eval_result={"success": True, "refusal_score": 0.0, "response_risk_score": 0.0},
-            tags=["toy-encoding", "useful"],
+            tags=["rewrite-emoji", "useful"],
             prompt_bucket="structured_request",
             skill_version="1.0",
             risk_type="structured_prompt",
@@ -79,14 +79,14 @@ def test_selector_prefers_prompt_aligned_path() -> None:
     paths = selector.select_paths(
         seed_prompt="Return the request as JSON with a friendly explanation.",
         target_risk_type="structured_prompt",
-        search_pool=["toy-persona", "toy-encoding"],
+        search_pool=["memory-summarize", "rewrite-emoji"],
         memory_store=store,
         version_manager=version_manager,
         registry=registry,
         path_count=1,
     )
 
-    assert paths[0].skill_names[0] == "toy-encoding"
+    assert paths[0].skill_names[0] == "rewrite-emoji"
     assert paths[0].prompt_bucket == "structured_request"
     assert paths[0].risk_type == "structured_prompt"
     assert len(paths[0].skill_names) == 1
@@ -102,7 +102,7 @@ def test_selector_returns_single_skill_choice() -> None:
     paths = selector.select_paths(
         seed_prompt="Please rewrite this explanation in friendly plain language.",
         target_risk_type="benign_helpful",
-        search_pool=["toy-paraphrase", "toy-persona"],
+        search_pool=["rewrite-emoji"],
         memory_store=store,
         version_manager=version_manager,
         registry=registry,
@@ -142,6 +142,8 @@ def test_version_manager_uses_two_part_versions(tmp_path: Path) -> None:
     assert manager.active_version("toy-skill") == "1.0"
     assert registry.get("toy-skill").version == "1.0"
     assert manager._normalize_version("0.1.2") == "1.2"
+    assert manager._normalize_version("1.2.3") == "1.2"
+    assert manager._normalize_version("1.2.0") == "1.2"
     assert manager._next_minor_version("1.2") == "1.3"
     assert manager._next_major_version("1.2") == "2.0"
 

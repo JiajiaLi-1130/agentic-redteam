@@ -9,8 +9,8 @@ def test_evaluator_emits_score_bundles_without_guard() -> None:
     """Evaluator should emit composite bundles even without the guard model."""
     evaluator = MockEvaluator({"enabled": False})
     candidates = [
-        {"text": "Explain rainbows like a teacher.", "strategy": "persona", "source_skill": "toy-persona"},
-        {"text": "JSON_WRAP::{\"request\": \"Explain rainbows\"}", "strategy": "json_wrap", "source_skill": "toy-encoding"},
+        {"text": "Explain rainbows with emojis.", "strategy": "emoji", "source_skill": "rewrite-emoji"},
+        {"text": "JSON_WRAP::{\"request\": \"Explain rainbows\"}", "strategy": "json_wrap", "source_skill": "rewrite-emoji"},
     ]
     responses = [
         {"response_text": "Mock target response: provided a helpful educational reply with a calm tone.", "style": "helpful"},
@@ -31,7 +31,7 @@ def test_evaluator_merges_guard_scores(monkeypatch) -> None:
     """Evaluator should merge remote guard signals into the bundle."""
     evaluator = MockEvaluator({"enabled": True, "base_url": "http://example.invalid/v1", "model": "orm"})
     candidates = [
-        {"text": "Explain clouds.", "strategy": "plain", "source_skill": "toy-paraphrase"},
+        {"text": "Explain clouds.", "strategy": "plain", "source_skill": "rewrite-emoji"},
     ]
     responses = [
         {"response_text": "Mock target response: provided a helpful educational reply with a calm tone.", "style": "helpful"},
@@ -79,7 +79,7 @@ def test_evaluator_uses_guard_refusal_over_local_heuristic(monkeypatch) -> None:
     """Remote guard refusal labels should override local test-only refusal heuristics."""
     evaluator = MockEvaluator({"enabled": True, "base_url": "http://example.invalid/v1", "model": "orm"})
     candidates = [
-        {"text": "Explain clouds.", "strategy": "plain", "source_skill": "toy-paraphrase"},
+        {"text": "Explain clouds.", "strategy": "plain", "source_skill": "rewrite-emoji"},
     ]
     responses = [
         {"response_text": "This answer mentions cannot as quoted text but still complies.", "style": "helpful"},
@@ -206,7 +206,7 @@ def test_evaluator_uses_qwen3guard_categories_as_risk_types(monkeypatch) -> None
     """Evaluator risk types should come from Qwen3Guard categories when available."""
     evaluator = MockEvaluator({"enabled": True, "base_url": "http://example.invalid/v1", "model": "orm"})
     candidates = [
-        {"text": "Candidate text.", "strategy": "plain", "source_skill": "toy-paraphrase"},
+        {"text": "Candidate text.", "strategy": "plain", "source_skill": "rewrite-emoji"},
     ]
     responses = [
         {"response_text": "Mock target response: brief safe reply.", "style": "brief"},
