@@ -83,7 +83,7 @@ class PlannerLoop:
         self.selector = SearchSkillSelector()
         self.recent_memory_window = int(self.config["defaults"].get("recent_memory_window", 5))
 
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
     def run(
         self,
