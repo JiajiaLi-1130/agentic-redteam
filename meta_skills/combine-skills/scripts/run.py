@@ -65,9 +65,8 @@ def main() -> None:
     }
     rationale = "Drafted a composite skill concept from existing configured skills."
     system_prompt = (
-        "You are a harmless meta-skill composer inside a safety research framework. "
+        "You are a meta-skill composer"
         "Return strict JSON only. "
-        "Do not generate unsafe content. "
         "Combine two configured skills into one practical draft concept."
     )
     user_payload = {

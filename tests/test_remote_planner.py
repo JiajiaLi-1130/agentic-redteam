@@ -71,16 +71,16 @@ def test_remote_planner_accepts_valid_json(monkeypatch) -> None:
         "_call_remote_planner",
         lambda **_kwargs: (
             '{"plan_steps": ['
-            '{"action_type": "select_search_paths", "target": null, "args": {"search_pool": ["rewrite-emoji"], "selected_skill_count": 1, "exploration_weight": 0.45}, "reason": "Try emoji rewrites first."}'
+            '{"action_type": "invoke_skill", "target": "rewrite-emoji", "args": {"mode": "search", "candidate_count": 1}, "reason": "Try emoji rewrites first."}'
             "]}"),
     )
 
     plan = planner.plan(state, load_workflows(), registry)
 
     assert len(plan) == 1
-    assert plan[0].action_type == "select_search_paths"
-    assert plan[0].args["search_pool"] == ["rewrite-emoji"]
-    assert plan[0].args["selected_skill_count"] == 1
+    assert plan[0].action_type == "invoke_skill"
+    assert plan[0].target == "rewrite-emoji"
+    assert plan[0].args["candidate_count"] == 1
     assert state.planner_flags["planner_backend"] == "llm"
 
 
@@ -107,7 +107,7 @@ def test_remote_planner_falls_back_on_invalid_json(monkeypatch) -> None:
 
 
 def test_remote_planner_clamps_direct_selected_skill_count_to_one(monkeypatch) -> None:
-    """Remote planner should not allow planner-direct mode to schedule multiple skills."""
+    """Remote planner should directly choose one skill in planner-direct mode."""
     specs = SkillLoader(PROJECT_ROOT).discover()
     registry = SkillRegistry(specs)
     planner = LLMPlanner(
@@ -126,9 +126,8 @@ def test_remote_planner_clamps_direct_selected_skill_count_to_one(monkeypatch) -
         "_call_remote_planner",
         lambda **_kwargs: (
             '{"plan_steps": ['
-            '{"action_type": "select_search_paths", "target": null, '
-            '"args": {"search_pool": ["rewrite-emoji", "rewrite-language"], '
-            '"selected_skill_count": 2, "exploration_weight": 0.45}, '
+            '{"action_type": "invoke_skill", "target": "rewrite-language", '
+            '"args": {"mode": "planner_direct", "candidate_count": 1}, '
             '"reason": "Try direct rewrite skills."}'
             "]}"
         ),
@@ -137,10 +136,10 @@ def test_remote_planner_clamps_direct_selected_skill_count_to_one(monkeypatch) -
     plan = planner.plan(state, load_workflows(), registry)
 
     assert len(plan) == 1
-    assert plan[0].action_type == "select_search_paths"
-    assert set(plan[0].args["search_pool"]) == {"rewrite-emoji", "rewrite-language"}
-    assert set(plan[0].args["search_pool"]).issubset(REWRITE_SKILLS)
-    assert plan[0].args["selected_skill_count"] == 1
+    assert plan[0].action_type == "invoke_skill"
+    assert plan[0].target == "rewrite-language"
+    assert plan[0].args["candidate_count"] == 1
+    assert plan[0].target in REWRITE_SKILLS
     assert state.planner_flags["planner_backend"] == "llm"
 
 
@@ -180,7 +179,7 @@ def test_remote_planner_builds_stage_scoped_skill_cards() -> None:
         registry,
         {
             "allowed_search_pool": ["rewrite-emoji"],
-            "allowed_targets": {"select_search_paths": [None]},
+            "allowed_targets": {"invoke_skill": ["rewrite-emoji"]},
         },
     )
 

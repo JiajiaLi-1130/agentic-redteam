@@ -2,7 +2,7 @@
 
 This project is a minimal, runnable Python framework for studying an agentic workflow built around a stable runtime kernel and a pluggable skill space.
 
-All bundled skills are harmless toy examples. They only perform mock prompt transformations, memory analysis, and mock evaluation so the architecture can be studied without implementing real-world jailbreaks, evasions, or unsafe behaviors.
+All bundled skills are toy examples. They only perform mock prompt transformations, memory analysis, and mock evaluation so the architecture can be studied without implementing real-world jailbreaks, evasions, or unsafe behaviors.
 
 ## Project Goal
 
