@@ -140,7 +140,6 @@ def test_planner_routes_high_refusal_to_analysis() -> None:
     state = make_state()
     state.last_eval = {
         "refusal_score": 0.9,
-        "usefulness_score": 0.2,
         "diversity_score": 0.5,
         "success": False,
         "notes": [],
@@ -158,7 +157,6 @@ def test_planner_stops_after_successful_evaluation() -> None:
     state.last_eval = {
         "success": True,
         "refusal_score": 0.0,
-        "usefulness_score": 0.2,
     }
 
     planner.route_after_evaluation(state, load_workflows())

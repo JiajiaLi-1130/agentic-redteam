@@ -302,7 +302,6 @@ class PlannerLoop:
                     ),
                     "best_skill": eval_payload.get("best_skill"),
                     "success": eval_payload.get("success"),
-                    "usefulness_score": eval_payload.get("usefulness_score"),
                     "refusal_score": eval_payload.get("refusal_score"),
                 },
             )
@@ -554,7 +553,6 @@ class PlannerLoop:
                 {
                     "attempts": 0,
                     "successes": 0,
-                    "avg_usefulness_score": 0.0,
                     "avg_refusal_score": 0.0,
                     "avg_overall_score": 0.0,
                 },
@@ -562,19 +560,16 @@ class PlannerLoop:
             bundle = bundles.get(index, {})
             success = bool(bundle.get("candidate_success", eval_payload.get("success", False)))
             refusal_score = float(bundle.get("refusal_score", eval_payload.get("refusal_score", 0.0)))
-            usefulness_score = float(eval_payload.get("usefulness_score", 0.0)) if not bundles else 0.0
             overall_score = 1.0 if success else 0.0
 
             metric["attempts"] += 1
             metric["successes"] += int(success)
-            metric["avg_usefulness_score"] += usefulness_score
             metric["avg_refusal_score"] += refusal_score
             metric["avg_overall_score"] += overall_score
 
         for metric in grouped.values():
             attempts = max(int(metric["attempts"]), 1)
             metric["asr"] = int(metric["successes"]) / attempts
-            metric["avg_usefulness_score"] = float(metric["avg_usefulness_score"]) / attempts
             metric["avg_refusal_score"] = float(metric["avg_refusal_score"]) / attempts
             metric["avg_overall_score"] = float(metric["avg_overall_score"]) / attempts
 
@@ -688,7 +683,6 @@ class PlannerLoop:
             target_profile=dict(self.config["environment"]["target_profile"]),
             conversation_history=[],
             memory_summary=state.memory_summary,
-            constraints=dict(self.config.get("constraints", {})),
             prior_candidates=list(state.pending_candidates),
             evaluator_feedback=dict(state.last_eval),
             extra=extra,

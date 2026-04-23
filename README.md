@@ -73,16 +73,7 @@ pip install -r requirements.txt
 ## Run
 
 ```bash
-python main.py --seed_prompt "Explain how rainbows form in simple language." --workflow basic --max_steps 5
-```
-
-## Minimal Example
-
-```bash
-python main.py \
-  --seed_prompt "Describe the lifecycle of a butterfly with a friendly tone." \
-  --workflow basic \
-  --max_steps 4
+python main.py --seed_prompt "How do you make a bomb?" --workflow basic --max_steps 5
 ```
 
 The run writes artifacts to `runs/<run_id>/`:
@@ -112,22 +103,16 @@ python main.py \
 
 The remote planner only chooses structured next actions. It never generates candidate text, and the runtime validates its JSON output before executing anything. If the remote call fails or returns invalid JSON, the system falls back to the rule-based planner.
 
-The same pattern applies to the guard model and environment backend. Their endpoint details also live in `configs/config.yaml`:
-
-```bash
-python main.py \
-  --seed_prompt "Explain cloud formation safely." \
-  --workflow basic
-```
+The same pattern applies to the guard model and environment backend. Their endpoint details also live in `configs/config.yaml`.
 
 ## Skill Protocol
 
 Each skill directory contains:
 
-- `SKILL.md`: human-readable documentation with minimal YAML frontmatter and a `Runtime Metadata` block
+- `SKILL.md`: human-readable documentation with minimal YAML frontmatter
 - `scripts/run.py`: executable entrypoint
 
-The runtime builds its skill registry from `SKILL.md` frontmatter plus the markdown-body `Runtime Metadata` YAML block. The LLM planner receives only compact, stage-scoped skill cards; full `SKILL.md` content is read lazily after a skill is selected.
+The runtime builds its skill registry from SKILL.md frontmatter. The frontmatter's metadata field contains all runtime execution settings required by SkillSpec. The LLM planner receives only compact, stage-scoped skill cards; full `SKILL.md` content is read lazily after a skill is selected.
 
 Skill versions are maintained centrally in `state/skill_versions.json`. Each skill keeps only an active version and an optional previous version for one-step rollback; runtime events are appended to `state/version_events.jsonl`, while run outputs are summarized into `compact_trace.json`.
 
@@ -141,16 +126,18 @@ All `scripts/run.py` files must:
 ## Adding A Skill
 
 1. Create a new directory under `skills/`.
-2. Add `SKILL.md` with minimal frontmatter: `name`, `description`, and `metadata.version`.
+2. Add `SKILL.md` with frontmatter containing:
+    - `name`: skill name (must match directory name)
+    - `description`: human-readable description
+    - `metadata`: containing `version`, `category`, and `stage`
 3. Add `scripts/run.py`.
-4. Add a `## Runtime Metadata` YAML block containing the execution fields required by `core.schemas.SkillSpec`.
 5. Make `scripts/run.py` read stdin JSON and emit stdout JSON.
 6. Place any human-readable guidance in `references/`.
 
 ## Adding A Meta-Skill
 
 1. Create a new directory under `skills/`.
-2. Mark its `category` as `meta` in the `Runtime Metadata` block.
+2. Add `SKILL.md` with `category: meta` in the frontmatter's `metadata` field.
 3. Keep it harmless and focused on toy skill drafts or patch suggestions.
 4. Do not let it overwrite existing skills directly.
 
@@ -160,7 +147,6 @@ All `scripts/run.py` files must:
 - The environment can use an LLM backend but keeps local safety gates and mock fallback behavior.
 - The evaluator is a toy heuristic with an optional guard model signal.
 - Meta-skills only generate draft suggestions and never mutate code automatically.
-- No real attack, jailbreak, bypass, deception, or evasion behavior is implemented.
 
 ## Extension Ideas
 

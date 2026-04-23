@@ -95,11 +95,9 @@ def base_context() -> dict[str, Any]:
             "designed_skill_drafts": [],
             "risk_matrix": memory_matrix,
         },
-        "constraints": {},
         "prior_candidates": [],
         "evaluator_feedback": {
             "refusal_score": 0.80,
-            "usefulness_score": 0.30,
             "metadata": {
                 "component_summary": {
                     "avg_response_risk_score": 0.20,

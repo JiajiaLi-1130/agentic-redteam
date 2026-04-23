@@ -201,7 +201,6 @@ def test_remote_stage_router_routes_after_evaluation(monkeypatch) -> None:
     state.last_eval = {
         "success": False,
         "refusal_score": 1.0,
-        "usefulness_score": 0.0,
     }
     state.consecutive_failures = 1
 
@@ -261,7 +260,6 @@ def test_remote_stage_router_falls_back_on_invalid_next_stage(monkeypatch) -> No
     state.last_eval = {
         "success": False,
         "refusal_score": 0.9,
-        "usefulness_score": 0.0,
     }
 
     monkeypatch.setattr(

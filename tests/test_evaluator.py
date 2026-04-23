@@ -23,7 +23,6 @@ def test_evaluator_emits_score_bundles_without_guard() -> None:
     assert result.metadata["guard_backend"] == "disabled"
     assert len(result.metadata["score_bundles"]) == 2
     assert result.metadata["best_candidate_index"] in {0, 1}
-    assert result.usefulness_score == 0.0
     assert result.metadata["seed_risk_type"] == "unclassified"
     assert result.metadata["primary_risk_type"] == "unclassified"
 
@@ -79,7 +78,6 @@ def test_evaluator_merges_guard_scores(monkeypatch) -> None:
     assert "guard_risk_score" not in bundle
     assert "heuristic_usefulness_score" not in bundle
     assert "overall_score" not in bundle
-    assert result.usefulness_score == 0.0
     assert result.success is True
     assert result.metadata["seed_risk_type"] == "unclassified"
     assert result.metadata["guard_backend"] == "openai_compatible"
